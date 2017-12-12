@@ -3,10 +3,13 @@
 #include<string.h>
 #include<string>
 #include<sstream>
+#include<time.h>
 using namespace std;
 #define Height 1080
 #define Width  1920
 FILE* fp_in=NULL,*fp_out=NULL;
+clock_t start, stop;
+double duration;
 
 typedef int LONG;
 typedef unsigned char BYTE;
@@ -102,7 +105,7 @@ int main()
     bmp_info.biClrImportant=0;
 
     ARGB_data buffer[Height*Width];
-    
+    start = clock();
     fp_out = fopen("part2-2.yuv","wb");
 	for( ; num < 86; alpha -=3 )
 	{
@@ -161,5 +164,8 @@ int main()
 		//fclose(fp_out);
 	}
 	fclose(fp_out);
+	stop = clock();
+	duration = ((double)(stop - start))*1000/ CLOCKS_PER_SEC;
+	printf("total time= %f ms\n", duration);
 	return 0;
 }
