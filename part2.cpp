@@ -3,6 +3,7 @@
 #include<string.h>
 #include<string>
 #include<sstream>
+using namespace std;
 #define Height 1080
 #define Width  1920
 FILE* fp_in=NULL,*fp_out=NULL;
@@ -38,7 +39,22 @@ typedef struct
 	BYTE r;
 	BYTE a;
 } ARGB_data;
-using namespace std;
+
+
+void YUV2RGB(unsigned char &Y,unsigned char &U,unsigned char &V,unsigned char &R,unsigned char &G,unsigned char &B)
+{
+	R= Y + 1.402 * (V-128) ;
+	G= Y - 0.34413 * (U-128) - 0.71414 * (V-128);
+	B= Y + 1.772 * (U-128);
+}
+
+void RGB2YUV(unsigned char &Y,unsigned char &U,unsigned char &V,unsigned char &R,unsigned char &G,unsigned char &B)
+{
+	Y = 0.299 * R + 0.587 * G + 0.114 * B;
+	U = - 0.1687 * R - 0.3313 * G + 0.5 * B + 128;
+	V = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
+}
+
 int main()
 {
 	fp_in=fopen("dem2.yuv","r");
@@ -49,10 +65,11 @@ int main()
 	}
 
 	unsigned char *buffer_y=(unsigned char*)malloc(sizeof(char)*Height*Width);
-
+	unsigned char *buffer_wy=(unsigned char*)malloc(sizeof(char)*Height*Width);
 	unsigned char *buffer_u=(unsigned char*)malloc(sizeof(char)*Height*Width/4);
-
+	unsigned char *buffer_wu=(unsigned char*)malloc(sizeof(char)*Height*Width/4);
 	unsigned char *buffer_v=(unsigned char*)malloc(sizeof(char)*Height*Width/4);
+	unsigned char *buffer_wv=(unsigned char*)malloc(sizeof(char)*Height*Width/4);
 
 	fread(buffer_y,Height*Width,1,fp_in);
 	fread(buffer_u,Height*Width/4,1,fp_in);
@@ -61,7 +78,7 @@ int main()
 	fclose(fp_in);
 
 	unsigned char alpha=255;
-	int num=1;
+	int num=0;
 	unsigned char Y,U,V,R,G,B;
 	string str;
 	FileHead bmp_head;
@@ -85,64 +102,64 @@ int main()
     bmp_info.biClrImportant=0;
 
     ARGB_data buffer[Height*Width];
-
-	//for( ; alpha<256 ; alpha +=3 )
+    
+    fp_out = fopen("part2-2.yuv","wb");
+	for( ; num < 86; alpha -=3 )
 	{
+		//printf("num=%d\n",num);
 		memset(buffer,0,sizeof(buffer));
-		stringstream ss;
-		ss<<num;
+		
+		//stringstream ss;
+		//ss<<num;
 		num++;
 
-		str=ss.str();
-		str+=".bmp";
-		fp_out=fopen(str.c_str(),"wb");
+		//str=ss.str();
+		//str+=".yuv";
+		//fp_out=fopen(str.c_str(),"wb");
 		if(fp_out==NULL)
 		{
 			printf("Error: open file failed\n");
 			return 0;
 		}
-		fwrite(&bmp_head,1,sizeof(FileHead),fp_out);
-		fwrite(&bmp_info,1,sizeof(Infohead),fp_out);
-
+		//fwrite(&bmp_head,1,sizeof(FileHead),fp_out);
+		//fwrite(&bmp_info,1,sizeof(Infohead),fp_out);
+		
 		for(int pixel=0;pixel<Height*Width;++pixel)
 		{
-			Y=buffer_y[pixel];
+			Y = buffer_y[pixel];
 			//idx=((pixel/Width-1)>0?(pixel/Width-1)-1:0)*Width/2+(pixel-(pixel/Width)*Width)/2;
 			int idx=(pixel/(2*Width))*Width/2  + (pixel-(pixel/Width)*Width)/2;
-			U=buffer_u[idx];
-			V=buffer_v[idx];
-			/*
-			int R= Y + 1.140 * V ;
-			int G= Y - 0.394 * U - 0.581 * V;
-			int B= Y + 2.032 * U;
-			*/
-			R= Y + 1.402 * (V-128) ;
-			G= Y - 0.34413 * (U-128) - 0.71414 * (V-128);
-			B= Y + 1.772 * (U-128);
-
-			R=R>255?255:R;
-			R=R<0?0:R;
-			G=G>255?255:G;
-			G=G<0?0:G;
-			B=B>255?255:B;
-			B=B<0?0:B;
-
-			/*
-			R *= alpha/256;
-			G *= alpha/256;
-			B *= alpha/256;
-			*/
+			U = buffer_u[idx];
+			V = buffer_v[idx];
+			
+			//YUV2RGB
+			YUV2RGB(Y,U,V,R,G,B);
+		
+			R = R*alpha/256;
+			G = G*alpha/256;
+			B = B*alpha/256;
+			
 			//printf("R:%d, G:%d, B:%d\n",R,G,B);
+			/*
 			buffer[pixel].r=R;
 			buffer[pixel].g=G;
 			buffer[pixel].b=B;
 			buffer[pixel].a=alpha;
+			*/
+			RGB2YUV(Y,U,V,R,G,B);
+			buffer_wy[pixel] = Y;
+			buffer_wu[idx] = U;
+			buffer_wv[idx] = V;
 
 			//fprintf(fp_out, "%c%c%c%c", alpha,R,G,B);
 
 		}
-		fwrite((BYTE*)buffer,1,Height*Width*4,fp_out);
-		fclose(fp_out);
+		fwrite((BYTE*)buffer_wy,1,Height*Width,fp_out);
+		fwrite((BYTE*)buffer_wu,1,Height*Width/4,fp_out);
+		fwrite((BYTE*)buffer_wv,1,Height*Width/4,fp_out);
+		//fwrite((BYTE*)buffer,1,Height*Width*4,fp_out);
+		//fclose(fp_out);
 	}
+	fclose(fp_out);
 	return 0;
 }
