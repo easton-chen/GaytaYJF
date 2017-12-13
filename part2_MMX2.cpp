@@ -4,30 +4,19 @@
 #include<string>
 #include<sstream>
 #include<time.h>
-#include<emmintrin.h>
+//#include<emmintrin.h>
 using namespace std;
 #define Height 1080
 #define Width  1920
 FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
-double duration;
+int duration;
 
 typedef int LONG;
 typedef unsigned char BYTE;
 typedef unsigned int DWORD;
 typedef unsigned short WORD;
 
-
-__m64 Get_m64(long long n)
-{
-	union __m64__m64
-	{
-		__m64 m;
-		long long i;
-	}mi;
-	mi.i=n;
-	return mi.m;
-}
 int cnt=0;
 void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 {
@@ -37,31 +26,17 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     
     long long half=0x8080808080808080;
 	__asm__(
-        "movq (%2),%%mm1\n"
-        "movq (%3),%%mm2\n"
-        "movq %4,%%mm3\n"
+        "movq (%0),%%mm1\n"
+        "movq (%1),%%mm2\n"
+        "movq %2,%%mm3\n"
         "psubb %%mm3,%%mm2\n"
         "psubb %%mm3,%%mm1\n"
         "movq %%mm1,(%0)\n"
         "movq %%mm2,(%1)\n"
         "emms"
-        :"=r"(uu),"=r"(vv)
+        :
         :"r"(uu),"r"(vv),"r"(half)
     );
-    /*
-	printf("U-128:\t");
-	for(int i=0;i<=7;++i)
-	{	
-		printf("%d\t",uu[i] );
-	}
-	printf("\n");
-	printf("V-128:\t");
-	for(int i=0;i<=7;++i)
-	{	
-		printf("%d\t",vv[i] );
-	}
-	printf("\n");
-    */
     
     char v_tmp[8],u_tmp[8];
     //R
@@ -77,8 +52,8 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movq %0,%%rbx\n"
         "movq %%mm0,(%%rbx)\n"
         "emms"
-        :"=m"(rr)
-        :"r"(yy),"r"(v_tmp)
+        :
+        :"r"(rr),"r"(yy),"r"(v_tmp)
     );
     
     //G
@@ -96,8 +71,8 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movq %0,%%rbx\n"
         "movq %%mm0,(%%rbx)\n"
         "emms"
-        :"=m"(gg)
-        :"r"(yy),"r"(v_tmp),"r"(u_tmp)
+        :
+        :"r"(gg),"r"(yy),"r"(v_tmp),"r"(u_tmp)
     );
     
     //B
@@ -112,8 +87,8 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movq %0,%%rbx\n"
         "movq %%mm0,(%%rbx)\n"
         "emms"
-        :"=m"(bb)
-        :"r"(yy),"r"(u_tmp)
+        :
+        :"r"(bb),"r"(yy),"r"(u_tmp)
     );
     
 }
@@ -143,8 +118,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movq %0,%%rbx\n"
         "movq %%mm0,(%%rbx)\n"
         "emms"
-        :"=m"(yy)
-        :"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) 
+        :
+        :"r"(yy),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) 
     );
     //U
     for(int i=0;i<=7;++i)
@@ -164,8 +139,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movq %0,%%rbx\n"
         "movq %%mm0,(%%rbx)\n"
         "emms"
-        :"=m"(uu)
-        :"r"(r_tmp),"r"(g_tmp),"r"(b_tmp),"r"(half) 
+        :
+        :"r"(uu),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp),"r"(half) 
     );
     //V
     for(int i=0;i<=7;++i)
@@ -185,8 +160,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movq %0,%%rbx\n"
         "movq %%mm0,(%%rbx)\n"
         "emms"
-        :"=m"(vv)
-        :"r"(r_tmp),"r"(g_tmp),"r"(b_tmp),"r"(half) 
+        :
+        :"r"(vv),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp),"r"(half) 
     );
 
 }
@@ -247,35 +222,9 @@ int main()
 			}
 			
 			//YUV2RGB
-			/*
-			printf("Y:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",yy[i]);
-			printf("\n");
-			printf("U:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",uu[i]);
-			printf("\n");
-			printf("V:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",vv[i]);
-			printf("\n\n");
-			*/
+
 			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
-			/*
-			printf("R:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",R[pixel+i]);
-			printf("\n");
-			printf("G:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",G[pixel+i]);
-			printf("\n");
-			printf("B:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",B[pixel+i]);
-			printf("\n\n");
-			*/
+
             
 			for (int i = 0; i < 8; ++i)
 			{
@@ -292,32 +241,17 @@ int main()
 				buffer_wu[idx-i/2] = buffer_tu[8-i-1];	
 				buffer_wv[idx-i/2] = buffer_tv[8-i-1];	
 			}
-			/*
-			printf("Y:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_wy[pixel+i]);
-			printf("\n");
-			printf("U:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_tu[i]);
-			printf("\n");
-			printf("V:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_tv[i]);
-			printf("\n\n\n\n");
 
-			*/
 		}
 		fwrite((BYTE*)buffer_wy,1,Height*Width,fp_out);
 		fwrite((BYTE*)buffer_wu,1,Height*Width/4,fp_out);
 		fwrite((BYTE*)buffer_wv,1,Height*Width/4,fp_out);
-		//fwrite((BYTE*)buffer,1,Height*Width*4,fp_out);
-		//fclose(fp_out);
+
 	}
 	fclose(fp_out);
 	stop = clock();
 	//printf("start=%lu stop=%lu\n stop-start=%lf\n", start,stop,1.0*(stop-start));
-	duration = ((double)(stop - start))*1000/ CLOCKS_PER_SEC;
-	printf("total time= %f ms\n", duration);
+	duration = ((stop - start))*1000/ CLOCKS_PER_SEC;
+	printf("total time= %d ms\n", duration);
 	return 0;
 }

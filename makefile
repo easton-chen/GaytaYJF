@@ -1,14 +1,16 @@
-PART2=part2 part2_MMX part2_MMX2
-NOOPT=-mno-mmx -mno-sse -mno-sse2
+PART2=part2 part2_MMX part2_MMX2 part2_SSE
+NOMMX=-mno-mmx 
+NOSSE=-mno-sse
+NOSSE2=-mno-sse2 
 OPT=-mmmx
 all: $(PART2) 
 
 part2: part2.cpp
-	g++ $(NOOPT) -pg -o  part2 part2.cpp
-part2_MMX: part2_MMX.cpp	 
-	g++ $(OPT) -o part2_MMX part2_MMX.cpp
+	g++ $(NOMMX) $(NOSSE) $(NOSSE2) -o  part2 part2.cpp
 part2_MMX2: part2_MMX2.cpp	 
-	g++ -o part2_MMX2 part2_MMX2.cpp
+	g++ $(NOSSE) $(NOSSE2) -o part2_MMX2 part2_MMX2.cpp
+part2_SSE: part2_SSE.cpp
+	g++ -o part2_SSE part2_SSE.cpp
 part3: part3.cpp
 	g++ $(NOOPT) -o part3 part3.cpp
 .PHONY: clean

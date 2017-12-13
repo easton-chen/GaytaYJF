@@ -34,34 +34,21 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 /*	R= Y + 1.402 * (V-128) ;
 	G= Y - 0.34413 * (U-128) - 0.71414 * (V-128);
 	B= Y + 1.772 * (U-128);*/
-	/*
-    printf("U:\t");
-	for(int i=0;i<16;++i)
-	{	
-		printf("%d\t",uu[i] );
-	}
-	printf("\n");
-	printf("V:\t");
-	for(int i=0;i<16;++i)
-	{	
-		printf("%d\t",vv[i] );
-	}
-	printf("\n");*/
+
     char half[16];
     for (int i = 0; i < 16; ++i)
     {
     	half[i] = 0x80;
     }
 	__asm__(
-        "movups (%2),%%xmm1\n"
-        "movups (%3),%%xmm2\n"
-        "movups (%4),%%xmm3\n"
+        "movups (%0),%%xmm1\n"
+        "movups (%1),%%xmm2\n"
+        "movups (%2),%%xmm3\n"
         "psubb %%xmm3,%%xmm2\n"
         "psubb %%xmm3,%%xmm1\n"
         "movups %%xmm1,(%0)\n"
         "movups %%xmm2,(%1)\n"
-        
-        :"=r"(uu),"=r"(vv)
+        :
         :"r"(uu),"r"(vv),"r"(half)
     );
     
@@ -81,49 +68,30 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		v_f[j] = (char)vv[i+j];
     	}
     	__asm__(
-    		"movups (%1),%%xmm0\n"
-    		"movups (%2),%%xmm1\n"
+    		"movups (%0),%%xmm0\n"
+    		"movups (%1),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%0"
-    		:"=m"(v_f)
-    		:"r"(v_f),"r"(ratio_v)
+    		"movups %%xmm0,(%0)"
+    		:
+            :"r"(v_f),"r"(ratio_v)
     	);
     	for (int j = 0; j < 4; ++j)
     	{
         	v_tmp[i+j]=v_f[j];
     	}
     }
-    /*for (int i = 0; i < 16; ++i)
-    {
-    	printf("%d\t", v_tmp[i]);
-    }
-    printf("\n");*/
     __asm__(
         "movups (%1),%%xmm0\n"
         "movups (%2),%%xmm1\n"
         "paddb %%xmm1,%%xmm0\n"
-        "movq %0,%%rbx\n"
-        "movups %%xmm0,(%%rbx)\n"
-        
-        :"=m"(rr)
-        :"r"(yy),"r"(v_tmp)
+        //"movq %0,%%rbx\n"        
+        //"movups %%xmm0,(%%rbx)\n"
+        "movups %%xmm0,(%0)\n"
+        :
+        :"r"(rr),"r"(yy),"r"(v_tmp)
     );
     
-    //G
-    /*
-    printf("U:\n");
-    for (int i = 0; i < 16; ++i)
-    {
-    	printf("%d\t", (char)uu[i]);
-    }
-    printf("\n");
-    printf("V:\n");
-    for (int i = 0; i < 16; ++i)
-    {
-    	printf("%d\t", (char)vv[i]);
-    }
-    printf("\n");
-    */
+    //G     G= Y - 0.34413 * (U-128) - 0.71414 * (V-128);
    	ratio_u[0] = ratio_u[1] = ratio_u[2] = ratio_u[3] = -0.34413;
    	ratio_v[0] = ratio_v[1] = ratio_v[2] = ratio_v[3] = -0.71414;
     for(int i=0;i<16;i+=4)
@@ -134,16 +102,16 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		u_f[j] = (char)uu[i+j];
     	}
     	__asm__(
-    		"movups (%2),%%xmm0\n"
+    		"movups (%0),%%xmm0\n"
+    		"movups (%1),%%xmm1\n"
+    		"mulps %%xmm1,%%xmm0\n"
+    		"movups %%xmm0,(%0)\n"
+			"movups (%2),%%xmm0\n"
     		"movups (%3),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%0\n"
-			"movups (%4),%%xmm0\n"
-    		"movups (%5),%%xmm1\n"
-    		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%1\n"
-    		:"=m"(v_f),"=m"(u_f)
-    		:"r"(v_f),"r"(ratio_v),"r"(u_f),"r"(ratio_u)
+    		"movups %%xmm0,(%2)\n"
+    		:
+            :"r"(v_f),"r"(ratio_v),"r"(u_f),"r"(ratio_u)
     	);
     	for (int j = 0; j < 4; ++j)
     	{
@@ -151,39 +119,20 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         	u_tmp[i+j] = u_f[j];
     	}
     }
-    /*
-    printf("U-tmp:\n");
-    for (int i = 0; i < 16; ++i)
-    {
-    	printf("%d\t", u_tmp[i]);
-    }
-    printf("\n");
-    printf("V-tmp:\n");
-    for (int i = 0; i < 16; ++i)
-    {
-    	printf("%d\t", v_tmp[i]);
-    }
-    printf("\n\n");
-    */
-    /*
-    for(int i=0;i<16;i++)
-    {
-        u_tmp[i]=(char)uu[i]*-0.34413;
-        v_tmp[i]=(char)vv[i]*-0.71414;
-    }*/
     __asm__(
         "movups (%1),%%xmm0\n"
         "movups (%2),%%xmm1\n"
         "movups (%3),%%xmm2\n"
         "paddb %%xmm1,%%xmm0\n"
         "paddb %%xmm2,%%xmm0\n"
-        "movq %0,%%rbx\n"
-        "movups %%xmm0,(%%rbx)\n"
-        :"=m"(gg)
-        :"r"(yy),"r"(v_tmp),"r"(u_tmp)
+        //"movq %0,%%rbx\n"
+        //"movups %%xmm0,(%%rbx)\n"
+        "movups %%xmm0,(%0)\n"
+        :
+        :"r"(gg),"r"(yy),"r"(v_tmp),"r"(u_tmp)
     );
     
-    //B
+    //B     B= Y + 1.772 * (U-128);
     ratio_u[0] = ratio_u[1] = ratio_u[2] = ratio_u[3] = 1.772;
     for(int i=0;i<16;i+=4)
     {
@@ -192,31 +141,28 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		u_f[j] = (char)uu[i+j];
     	}
     	__asm__(
-    		"movups (%1),%%xmm0\n"
-    		"movups (%2),%%xmm1\n"
+    		"movups (%0),%%xmm0\n"
+    		"movups (%1),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%0"
-    		:"=m"(u_f)
-    		:"r"(u_f),"r"(ratio_u)
+    		//"movups %%xmm0,%0"
+            "movups %%xmm0,(%0)\n"
+    		:
+            :"r"(u_f),"r"(ratio_u)
     	);
     	for (int j = 0; j < 4; ++j)
     	{
         	u_tmp[i+j]=u_f[j];
     	}
     }
-    /*
-    for(int i=0;i<16;i++)
-    {
-        u_tmp[i]=(char)uu[i]*1.772;
-    }*/
     __asm__(
         "movups (%1),%%xmm0\n"
         "movups (%2),%%xmm1\n"
         "paddb %%xmm1,%%xmm0\n"
-        "movq %0,%%rbx\n"
-        "movups %%xmm0,(%%rbx)\n"
-        :"=m"(bb)
-        :"r"(yy),"r"(u_tmp)
+        //"movq %0,%%rbx\n"
+        //"movups %%xmm0,(%%rbx)\n"
+        "movups %%xmm0,(%0)\n"
+        :
+        :"r"(bb),"r"(yy),"r"(u_tmp)
     );
 }
 
@@ -234,11 +180,12 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     BYTE r_tmp[16],g_tmp[16],b_tmp[16];
     float r_f[4],g_f[4],b_f[4];
     float ratio_r[4],ratio_g[4],ratio_b[4];
-    //Y
+
+    //Y   Y = 0.299 * R + 0.587 * G + 0.114 * B;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.299;
     ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = 0.587;
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = 0.114;
-    /*for(int i=0;i<16;i+=4)
+    for(int i=0;i<16;i+=4)
     {
     	for (int j = 0; j < 4; ++j)
     	{
@@ -247,19 +194,19 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		b_f[j] = bb[i+j];
     	}
     	__asm__(
-    		"movups (%3),%%xmm0\n"
-    		"movups (%4),%%xmm1\n"
+    		"movups (%0),%%xmm0\n"
+    		"movups (%1),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%0\n"
-			"movups (%5),%%xmm0\n"
-    		"movups (%6),%%xmm1\n"
+    		"movups %%xmm0,(%0)\n"
+			"movups (%2),%%xmm0\n"
+    		"movups (%3),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%1\n"
-    		"movups (%7),%%xmm0\n"
-    		"movups (%8),%%xmm1\n"
+    		"movups %%xmm0,(%2)\n"
+    		"movups (%4),%%xmm0\n"
+    		"movups (%5),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,%2\n"
-    		:"=m"(r_f),"=m"(g_f),"=m"(b_f)
+    		"movups %%xmm0,(%4)\n"
+            :
     		:"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
     	);
     	for (int j = 0; j < 4; ++j)
@@ -268,14 +215,9 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         	g_tmp[i+j] = g_f[j];
         	b_tmp[i+j] = b_f[j];
     	}
-    }*/
+    }
     
-    for(int i=0;i<16;++i)
-	{
-		r_tmp[i]=rr[i]*0.299;
-		g_tmp[i]=gg[i]*0.587;
-		b_tmp[i]=bb[i]*0.114;
-	}
+
 	
     __asm__(
         "movups (%1),%%xmm0\n"
@@ -283,19 +225,52 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movups (%3),%%xmm2\n"
         "paddb %%xmm1,%%xmm0\n"
         "paddb %%xmm2,%%xmm0\n"
-        "movq %0,%%rbx\n"
-        "movups %%xmm0,(%%rbx)\n"
-        
-        :"=m"(yy)
-        :"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) 
+        //"movq %0,%%rbx\n"
+        //"movups %%xmm0,(%%rbx)\n"
+        "movups %%xmm0,(%0)\n"
+        //:"=m"(yy)
+        :
+        :"r"(yy),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) 
     );
-    //U
-    for(int i=0;i< 16;++i)
-	{
-		r_tmp[i]=rr[i]*-0.1687;
-		g_tmp[i]=gg[i]*-0.3313;
-		b_tmp[i]=bb[i]*0.5;
-	}
+
+    //U   U = - 0.1687 * R - 0.3313 * G + 0.5 * B + 128;
+    ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = - 0.1687;
+    ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = - 0.3313;
+    ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = 0.5;
+    for(int i=0;i<16;i+=4)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            r_f[j] = rr[i+j];
+            g_f[j] = gg[i+j];
+            b_f[j] = bb[i+j];
+        }
+        __asm__(
+            "movups (%0),%%xmm0\n"
+            "movups (%1),%%xmm1\n"
+            "mulps %%xmm1,%%xmm0\n"
+            "movups %%xmm0,(%0)\n"
+            "movups (%2),%%xmm0\n"
+            "movups (%3),%%xmm1\n"
+            "mulps %%xmm1,%%xmm0\n"
+            "movups %%xmm0,(%2)\n"
+            "movups (%4),%%xmm0\n"
+            "movups (%5),%%xmm1\n"
+            "mulps %%xmm1,%%xmm0\n"
+            "movups %%xmm0,(%4)\n"
+            :
+            :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+        );
+        for (int j = 0; j < 4; ++j)
+        {
+            r_tmp[i+j] = r_f[j];
+            g_tmp[i+j] = g_f[j];
+            b_tmp[i+j] = b_f[j];
+        }
+    }
+    
+
+    
     __asm__(
         "movups (%1),%%xmm0\n"
         "movups (%2),%%xmm1\n"
@@ -304,19 +279,53 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "paddb %%xmm1,%%xmm0\n"
         "paddb %%xmm2,%%xmm0\n"
         "paddb %%xmm3,%%xmm0\n"
-        "movq %0,%%rbx\n"
-        "movups %%xmm0,(%%rbx)\n"
-        
-        :"=m"(uu)
-        :"r"(r_tmp),"r"(g_tmp),"r"(b_tmp),"r"(half) 
+        //"movq %0,%%rbx\n"
+        //"movups %%xmm0,(%%rbx)\n"
+        "movups %%xmm0,(%0)\n"
+        //:"=m"(yy)
+        :
+        :"r"(uu),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) ,"r"(half) 
     );
-    //V
-    for(int i=0;i<16;++i)
-	{
-		r_tmp[i]=rr[i]*0.5;
-		g_tmp[i]=gg[i]*-0.4187;
-		b_tmp[i]=bb[i]*-0.0813;
-	}
+
+
+    //V  V = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
+    ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.5;
+    ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = - 0.4187;
+    ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] =- 0.0813 ;
+    for(int i=0;i<16;i+=4)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            r_f[j] = rr[i+j];
+            g_f[j] = gg[i+j];
+            b_f[j] = bb[i+j];
+        }
+        __asm__(
+            "movups (%0),%%xmm0\n"
+            "movups (%1),%%xmm1\n"
+            "mulps %%xmm1,%%xmm0\n"
+            "movups %%xmm0,(%0)\n"
+            "movups (%2),%%xmm0\n"
+            "movups (%3),%%xmm1\n"
+            "mulps %%xmm1,%%xmm0\n"
+            "movups %%xmm0,(%2)\n"
+            "movups (%4),%%xmm0\n"
+            "movups (%5),%%xmm1\n"
+            "mulps %%xmm1,%%xmm0\n"
+            "movups %%xmm0,(%4)\n"
+            :
+            :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+        );
+        for (int j = 0; j < 4; ++j)
+        {
+            r_tmp[i+j] = r_f[j];
+            g_tmp[i+j] = g_f[j];
+            b_tmp[i+j] = b_f[j];
+        }
+    }
+    
+
+    
     __asm__(
         "movups (%1),%%xmm0\n"
         "movups (%2),%%xmm1\n"
@@ -325,11 +334,12 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "paddb %%xmm1,%%xmm0\n"
         "paddb %%xmm2,%%xmm0\n"
         "paddb %%xmm3,%%xmm0\n"
-        "movq %0,%%rbx\n"
-        "movups %%xmm0,(%%rbx)\n"
-        
-        :"=m"(vv)
-        :"r"(r_tmp),"r"(g_tmp),"r"(b_tmp),"r"(half) 
+        //"movq %0,%%rbx\n"
+        //"movups %%xmm0,(%%rbx)\n"
+        "movups %%xmm0,(%0)\n"
+        //:"=m"(yy)
+        :
+        :"r"(vv),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) ,"r"(half) 
     );
 
 }
@@ -363,10 +373,9 @@ int main()
 
     start = clock();
     fp_out = fopen("part2-SSE.yuv","wb");
-	for( ; num < 1; alpha -=3 )
+	for( ; num < 86; alpha -=3 )
 	{
 		num++;
-		//printf("num=%d\n", num);
 		if(fp_out==NULL)
 		{
 			printf("Error: open file failed\n");
@@ -390,35 +399,9 @@ int main()
 			}
 			
 			//YUV2RGB
-			/*
-			printf("Y:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",yy[i]);
-			printf("\n");
-			printf("U:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",uu[i]);
-			printf("\n");
-			printf("V:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",vv[i]);
-			printf("\n\n");
-			*/
+
 			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
-			/*
-			printf("R:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",R[pixel+i]);
-			printf("\n");
-			printf("G:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",G[pixel+i]);
-			printf("\n");
-			printf("B:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",B[pixel+i]);
-			printf("\n\n");
-			*/
+
             
 			for (int i = 0; i < 16; ++i)
 			{
@@ -435,27 +418,10 @@ int main()
 				buffer_wu[idx-i/2] = buffer_tu[16-i-1];	
 				buffer_wv[idx-i/2] = buffer_tv[16-i-1];	
 			}
-			/*
-			printf("Y:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_wy[pixel+i]);
-			printf("\n");
-			printf("U:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_tu[i]);
-			printf("\n");
-			printf("V:");
-			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_tv[i]);
-			printf("\n\n\n\n");
-
-			*/
 		}
 		fwrite((BYTE*)buffer_wy,1,Height*Width,fp_out);
 		fwrite((BYTE*)buffer_wu,1,Height*Width/4,fp_out);
 		fwrite((BYTE*)buffer_wv,1,Height*Width/4,fp_out);
-		//fwrite((BYTE*)buffer,1,Height*Width*4,fp_out);
-		//fclose(fp_out);
 	}
 	fclose(fp_out);
 	stop = clock();
