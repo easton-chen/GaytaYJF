@@ -9,7 +9,7 @@ using namespace std;
 #define Width  1920
 FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
-float duration;
+int duration;
 
 
 typedef int LONG;
@@ -134,7 +134,7 @@ int main()
 	stop = clock();
 	printf("start=%lu stop=%lu\n stop-start=%lu\n", start,stop,(stop-start));
 	//printf("%d\n",CLOCKS_PER_SEC);
-	duration = (float)(stop - start)/ CLOCKS_PER_SEC;
-	printf("total time= %f s\n", duration);
+	duration = (stop - start)/ CLOCKS_PER_SEC;
+	printf("total time= %d s\n", duration);
 	return 0;
 }
