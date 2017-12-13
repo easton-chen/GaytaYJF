@@ -290,8 +290,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 
     //V  V = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.5;
-    ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = - 0.4187;
-    ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] =- 0.0813 ;
+    ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = -0.4187;
+    ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = -0.0813 ;
     for(int i=0;i<16;i+=4)
     {
         for (int j = 0; j < 4; ++j)
