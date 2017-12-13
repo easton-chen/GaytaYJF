@@ -17,8 +17,6 @@ typedef unsigned char BYTE;
 typedef unsigned int DWORD;
 typedef unsigned short WORD;
 
-
-
 void YUV2RGB(unsigned char *Y,unsigned char *U,unsigned char *V,unsigned char *R,unsigned char *G,unsigned char *B)
 {
 	
@@ -70,7 +68,7 @@ int main()
 	fclose(fp_in);
 
 	unsigned char alpha=255;
-	int num=0;
+	int num=0,idx;
 	unsigned char Y,U,V,R,G,B;
 	string str;
 	
@@ -99,8 +97,8 @@ int main()
 		for(int pixel=0;pixel<Height*Width;++pixel)
 		{
 			Y = buffer_y[pixel];
-			//idx=((pixel/Width-1)>0?(pixel/Width-1)-1:0)*Width/2+(pixel-(pixel/Width)*Width)/2;
-			int idx=(pixel/(2*Width))*Width/2  + (pixel-(pixel/Width)*Width)/2;
+			
+			idx=(pixel/(2*Width))*Width/2  + (pixel-(pixel/Width)*Width)/2;
 			U = buffer_u[idx];
 			V = buffer_v[idx];
 			

@@ -12,38 +12,7 @@ FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
 double duration;
 
-typedef int LONG;
 typedef unsigned char BYTE;
-typedef unsigned int DWORD;
-typedef unsigned short WORD;
-typedef struct {
-        WORD    bfType;//2
-        DWORD   bfSize;//4
-        WORD    bfReserved1;//2
-        WORD    bfReserved2;//2
-        DWORD   bfOffBits;//4
-}__attribute__((packed))FileHead;
-typedef struct{
-        DWORD      biSize;//4
-        LONG       biWidth;//4
-        LONG       biHeight;//4
-        WORD       biPlanes;//2
-        WORD       biBitCount;//2
-        DWORD      biCompress;//4
-        DWORD      biSizeImage;//4
-        LONG       biXPelsPerMeter;//4
-        LONG       biYPelsPerMeter;//4
-        DWORD      biClrUsed;//4
-        DWORD      biClrImportant;//4
-}__attribute__((packed))Infohead;
-typedef struct 
-{
-	BYTE b;
-	BYTE g;
-	BYTE r;
-	BYTE a;
-} ARGB_data;
-
 
 __m64 Get_m64(long long n)
 {
@@ -55,6 +24,7 @@ __m64 Get_m64(long long n)
 	mi.i=n;
 	return mi.m;
 }
+
 int cnt=0;
 void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 {
@@ -238,53 +208,32 @@ int main()
 	fclose(fp_in);
 
 	unsigned char alpha=255;
-	int num=0;
-	unsigned char Y,U,V,R,G,B;
-	string str;
-	FileHead bmp_head;
-	Infohead bmp_info;
-
-	bmp_head.bfType=0x4d42;
-	bmp_head.bfSize=Height*Width*4+sizeof(FileHead)+sizeof(Infohead);
-	bmp_head.bfReserved1=bmp_head.bfReserved2=0;
-	bmp_head.bfOffBits=bmp_head.bfSize-Height*Width*4;
+	int num=0,idx;
 	
-	bmp_info.biSize=40;
-    bmp_info.biWidth=Width;
-    bmp_info.biHeight=Height;
-    bmp_info.biPlanes=1;
-    bmp_info.biBitCount = 32;
-    bmp_info.biCompress=0;
-    bmp_info.biSizeImage=0;
-    bmp_info.biXPelsPerMeter=0;
-    bmp_info.biYPelsPerMeter=0;
-    bmp_info.biClrUsed=0;
-    bmp_info.biClrImportant=0;
-
-    //ARGB_data buffer[Height*Width];
+	BYTE yy[8],uu[8],vv[8];
+	BYTE R[Height*Width],G[Height*Width],B[Height*Width];
+	BYTE buffer_tu[8],buffer_tv[8];
+    
     start = clock();
     fp_out = fopen("part2-MMX.yuv","wb");
+
 	for( ; num < 86; alpha -=3 )
 	{
 		num++;
-		//printf("num=%d\n", num);
+
 		if(fp_out==NULL)
 		{
 			printf("Error: open file failed\n");
 			return 0;
-		}
-		
-		BYTE yy[8],uu[8],vv[8];
-		BYTE R[Height*Width],G[Height*Width],B[Height*Width];
+		}		
 
 		for(int pixel=0;pixel<Height*Width; pixel += 8)
-		{
-
-			int idx;
+		{			
 			// get 8 Y, 8 U, 8 V 
 			for(int i=0;i<=7;++i)
 			{
 				yy[i]=buffer_y[pixel+i];
+				
 				idx=((pixel+i)/(2*Width))*Width/2 +(pixel+i-((pixel+i)/Width)*Width)/2;
 				uu[i]=buffer_u[idx];
 				vv[i]=buffer_v[idx];
@@ -327,7 +276,7 @@ int main()
 				B[pixel+i] = B[pixel+i]*alpha/256;
 			}	
 			
-			BYTE buffer_tu[8],buffer_tv[8];
+
 			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
 			
 			for (int i = 0; i < 8; i+=2)
