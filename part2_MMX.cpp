@@ -81,7 +81,8 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 
 	memcpy(&v_tmp,&tmp2,8);
 	memcpy(&u_tmp,&tmp1,8);
-	/*printf("U-128:");
+	/*
+	printf("U-128:");
 	for(int i=0;i<=7;++i)
 	{	
 		printf("%d\t",u_tmp[i] );
@@ -92,21 +93,23 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 	{	
 		printf("%d\t",v_tmp[i] );
 	}
-	printf("\n");*/
+	printf("\n");
 
-
+	*/
 
 	//R
 	memcpy(&v_tmp,&tmp2,8);
-	/*printf("RRRRRRRRRRRRRRRRR\n");
+	//printf("RRRRRRRRRRRRRRRRR\n");
 	for(int i=0;i<=7;++i)
 		v_tmp[i]*=1.402;
-		for(int i=0;i<=7;++i)
+	/*
+	for(int i=0;i<=7;++i)
 	{	
 		printf("%d\t",v_tmp[i] );
 	}	
-	printf("\n");*/
-	*R = _mm_adds_pu8(*Y , *((__m64 *)v_tmp));
+	printf("\n");
+	*/
+	*R = _mm_add_pi8(*Y , *((__m64 *)v_tmp));
 
 	//G
 	memcpy(&v_tmp,&tmp2,8);
@@ -161,7 +164,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 	long long half=0x8080808080808080;
 	__m64 n1 = Get_m64(half);
 
-	char r_tmp[8],g_tmp[8],b_tmp[8];
+	BYTE r_tmp[8],g_tmp[8],b_tmp[8];
 
 	//Y
 	memcpy(r_tmp,rr,8);
@@ -261,9 +264,10 @@ int main()
     //ARGB_data buffer[Height*Width];
     start = clock();
     fp_out = fopen("part2-MMX.yuv","wb");
-	//for( ; num < 86; alpha -=3 )
+	for( ; num < 86; alpha -=3 )
 	{
 		num++;
+		//printf("num=%d\n", num);
 		if(fp_out==NULL)
 		{
 			printf("Error: open file failed\n");
@@ -273,21 +277,21 @@ int main()
 		BYTE yy[8],uu[8],vv[8];
 		BYTE R[Height*Width],G[Height*Width],B[Height*Width];
 
-		for(int pixel=0;pixel<Height*Width/8; pixel += 8)
+		for(int pixel=0;pixel<Height*Width; pixel += 8)
 		{
 
-
+			int idx;
 			// get 8 Y, 8 U, 8 V 
 			for(int i=0;i<=7;++i)
-				{
-					yy[i]=buffer_y[pixel+i];
-					int idx=((pixel+i)/(2*Width))*Width/2 +(pixel+i-((pixel+i)/Width)*Width)/2;
-					uu[i]=buffer_u[idx];
-					vv[i]=buffer_v[idx];
-				}
+			{
+				yy[i]=buffer_y[pixel+i];
+				idx=((pixel+i)/(2*Width))*Width/2 +(pixel+i-((pixel+i)/Width)*Width)/2;
+				uu[i]=buffer_u[idx];
+				vv[i]=buffer_v[idx];
+			}
 			
 			//YUV2RGB
-
+			/*
 			printf("Y:");
 			for(int i=0;i<=7;++i)
 				printf("%d\t",yy[i]);
@@ -300,9 +304,9 @@ int main()
 			for(int i=0;i<=7;++i)
 				printf("%d\t",vv[i]);
 			printf("\n\n");
-
+			*/
 			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
-
+			/*
 			printf("R:");
 			for(int i=0;i<=7;++i)
 				printf("%d\t",R[pixel+i]);
@@ -315,30 +319,37 @@ int main()
 			for(int i=0;i<=7;++i)
 				printf("%d\t",B[pixel+i]);
 			printf("\n\n");
-
-			/*		
-			R = R*alpha/256;
-			G = G*alpha/256;
-			B = B*alpha/256;
 			*/
-
-
-			RGB2YUV(buffer_wy+pixel,buffer_wu+pixel,buffer_wv+pixel,R+pixel,G+pixel,B+pixel);
+			for (int i = 0; i < 8; ++i)
+			{
+				R[pixel+i] = R[pixel+i]*alpha/256;
+				G[pixel+i] = G[pixel+i]*alpha/256;
+				B[pixel+i] = B[pixel+i]*alpha/256;
+			}	
 			
+			BYTE buffer_tu[8],buffer_tv[8];
+			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
+			
+			for (int i = 0; i < 8; i+=2)
+			{
+				buffer_wu[idx-i/2] = buffer_tu[8-i-1];	
+				buffer_wv[idx-i/2] = buffer_tv[8-i-1];	
+			}
+			/*
 			printf("Y:");
 			for(int i=0;i<=7;++i)
 				printf("%d\t",buffer_wy[pixel+i]);
 			printf("\n");
 			printf("U:");
 			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_wu[pixel+i]);
+				printf("%d\t",buffer_tu[i]);
 			printf("\n");
 			printf("V:");
 			for(int i=0;i<=7;++i)
-				printf("%d\t",buffer_wv[pixel+i]);
+				printf("%d\t",buffer_tv[i]);
 			printf("\n\n\n\n");
 
-
+			*/
 		}
 		fwrite((BYTE*)buffer_wy,1,Height*Width,fp_out);
 		fwrite((BYTE*)buffer_wu,1,Height*Width/4,fp_out);
@@ -348,6 +359,7 @@ int main()
 	}
 	fclose(fp_out);
 	stop = clock();
+	printf("start=%lu stop=%lu\n stop-start=%lf\n", start,stop,1.0*(stop-start));
 	duration = ((double)(stop - start))*1000/ CLOCKS_PER_SEC;
 	printf("total time= %f ms\n", duration);
 	return 0;

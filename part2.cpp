@@ -9,54 +9,42 @@ using namespace std;
 #define Width  1920
 FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
-double duration;
+float duration;
 
 
 typedef int LONG;
 typedef unsigned char BYTE;
 typedef unsigned int DWORD;
 typedef unsigned short WORD;
-typedef struct {
-        WORD    bfType;//2
-        DWORD   bfSize;//4
-        WORD    bfReserved1;//2
-        WORD    bfReserved2;//2
-        DWORD   bfOffBits;//4
-}__attribute__((packed))FileHead;
-typedef struct{
-        DWORD      biSize;//4
-        LONG       biWidth;//4
-        LONG       biHeight;//4
-        WORD       biPlanes;//2
-        WORD       biBitCount;//2
-        DWORD      biCompress;//4
-        DWORD      biSizeImage;//4
-        LONG       biXPelsPerMeter;//4
-        LONG       biYPelsPerMeter;//4
-        DWORD      biClrUsed;//4
-        DWORD      biClrImportant;//4
-}__attribute__((packed))Infohead;
-typedef struct 
-{
-	BYTE b;
-	BYTE g;
-	BYTE r;
-	BYTE a;
-} ARGB_data;
 
 
-void YUV2RGB(unsigned char &Y,unsigned char &U,unsigned char &V,unsigned char &R,unsigned char &G,unsigned char &B)
+
+void YUV2RGB(unsigned char *Y,unsigned char *U,unsigned char *V,unsigned char *R,unsigned char *G,unsigned char *B)
 {
-	R= Y + 1.402 * (V-128) ;
-	G= Y - 0.34413 * (U-128) - 0.71414 * (V-128);
-	B= Y + 1.772 * (U-128);
+	
+	*R= *Y + 1.402 * (*V-128) ;
+	*G= *Y - 0.34413 * (*U-128) - 0.71414 * (*V-128);
+	*B= *Y + 1.772 * (*U-128);
+	
+	/*
+	R= Y + 1.140 * V;
+  	G= Y - 0.394 * U - 0.581 * V;
+  	B= Y + 2.032 * U;
+  	*/
 }
 
-void RGB2YUV(unsigned char &Y,unsigned char &U,unsigned char &V,unsigned char &R,unsigned char &G,unsigned char &B)
+void RGB2YUV(unsigned char *Y,unsigned char *U,unsigned char *V,unsigned char *R,unsigned char *G,unsigned char *B)
 {
-	Y = 0.299 * R + 0.587 * G + 0.114 * B;
-	U = - 0.1687 * R - 0.3313 * G + 0.5 * B + 128;
-	V = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
+	
+	*Y = 0.299 * (*R) + 0.587 * (*G) + 0.114 * (*B);
+	*U = - 0.1687 * (*R) - 0.3313 * (*G) + 0.5 * (*B) + 128;
+	*V = 0.5 * (*R) - 0.4187 * (*G) - 0.0813 * (*B) + 128;
+	
+	/*
+	Y= 0.299 * R + 0.587 * G + 0.114 * B;
+  	U= -0.147 * R - 0.289 * G + 0.436 * B;
+  	V= 0.615 * R - 0.515 * G - 0.100 * B;
+  	*/
 }
 
 int main()
@@ -85,33 +73,13 @@ int main()
 	int num=0;
 	unsigned char Y,U,V,R,G,B;
 	string str;
-	FileHead bmp_head;
-	Infohead bmp_info;
-
-	bmp_head.bfType=0x4d42;
-	bmp_head.bfSize=Height*Width*4+sizeof(FileHead)+sizeof(Infohead);
-	bmp_head.bfReserved1=bmp_head.bfReserved2=0;
-	bmp_head.bfOffBits=bmp_head.bfSize-Height*Width*4;
 	
-	bmp_info.biSize=40;
-    bmp_info.biWidth=Width;
-    bmp_info.biHeight=Height;
-    bmp_info.biPlanes=1;
-    bmp_info.biBitCount = 32;
-    bmp_info.biCompress=0;
-    bmp_info.biSizeImage=0;
-    bmp_info.biXPelsPerMeter=0;
-    bmp_info.biYPelsPerMeter=0;
-    bmp_info.biClrUsed=0;
-    bmp_info.biClrImportant=0;
-
-    ARGB_data buffer[Height*Width];
     start = clock();
     fp_out = fopen("part2-2.yuv","wb");
 	for( ; num < 86; alpha -=3 )
 	{
 		//printf("num=%d\n",num);
-		memset(buffer,0,sizeof(buffer));
+		
 		
 		//stringstream ss;
 		//ss<<num;
@@ -137,7 +105,7 @@ int main()
 			V = buffer_v[idx];
 			
 			//YUV2RGB
-			YUV2RGB(Y,U,V,R,G,B);
+			YUV2RGB(&Y,&U,&V,&R,&G,&B);
 		
 			R = R*alpha/256;
 			G = G*alpha/256;
@@ -150,7 +118,7 @@ int main()
 			buffer[pixel].b=B;
 			buffer[pixel].a=alpha;
 			*/
-			RGB2YUV(Y,U,V,R,G,B);
+			RGB2YUV(&Y,&U,&V,&R,&G,&B);
 			buffer_wy[pixel] = Y;
 			buffer_wu[idx] = U;
 			buffer_wv[idx] = V;
@@ -166,7 +134,9 @@ int main()
 	}
 	fclose(fp_out);
 	stop = clock();
-	duration = ((double)(stop - start))*1000/ CLOCKS_PER_SEC;
-	printf("total time= %f ms\n", duration);
+	printf("start=%lu stop=%lu\n stop-start=%lu\n", start,stop,(stop-start));
+	//printf("%d\n",CLOCKS_PER_SEC);
+	duration = (float)(stop - start)/ CLOCKS_PER_SEC;
+	printf("total time= %f s\n", duration);
 	return 0;
 }
