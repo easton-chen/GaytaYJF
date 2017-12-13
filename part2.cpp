@@ -17,32 +17,108 @@ typedef unsigned char BYTE;
 typedef unsigned int DWORD;
 typedef unsigned short WORD;
 
-void YUV2RGB(unsigned char *Y,unsigned char *U,unsigned char *V,unsigned char *R,unsigned char *G,unsigned char *B)
+void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 {
 	
-	*R= *Y + 1.402 * (*V-128) ;
-	*G= *Y - 0.34413 * (*U-128) - 0.71414 * (*V-128);
-	*B= *Y + 1.772 * (*U-128);
-	
-	/*
-	R= Y + 1.140 * V;
-  	G= Y - 0.394 * U - 0.581 * V;
-  	B= Y + 2.032 * U;
-  	*/
+/*	R= Y + 1.402 * (V-128) ;
+	G= Y - 0.34413 * (U-128) - 0.71414 * (V-128);
+	B= Y + 1.772 * (U-128);*/
+
+	char tmp1[8],tmp2[8];
+	char u_tmp[8],v_tmp[8];
+	for(int i=0;i<=7;++i)
+		tmp1[i]=uu[i]-128;
+	for(int i=0;i<=7;++i)
+		tmp2[i]=vv[i]-128;
+
+	//R
+	memcpy(&v_tmp,&tmp2,8);
+
+	for(int i=0;i<=7;++i)
+		v_tmp[i]*=1.402;
+
+	for(int i=0;i<=7;++i)
+		rr[i]=yy[i]+v_tmp[i];	
+
+	//G
+	memcpy(&v_tmp,&tmp2,8);
+	memcpy(&u_tmp,&tmp1,8);
+
+	for(int i=0;i<=7;++i)
+	{	
+		u_tmp[i]*=-0.34413;
+		v_tmp[i]*=-0.71414;
+	}
+
+	for(int i=0;i<=7;++i)
+	{
+		gg[i]=yy[i]+u_tmp[i]+v_tmp[i];
+	}		
+
+	//B
+	memcpy(&u_tmp,&tmp1,8);
+	for(int i=0;i<=7;++i)
+		u_tmp[i] *=1.772;
+
+	for(int i=0;i<=7;++i)
+		bb[i]=yy[i]+u_tmp[i];		
 }
 
-void RGB2YUV(unsigned char *Y,unsigned char *U,unsigned char *V,unsigned char *R,unsigned char *G,unsigned char *B)
+void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 {
-	
-	*Y = 0.299 * (*R) + 0.587 * (*G) + 0.114 * (*B);
-	*U = - 0.1687 * (*R) - 0.3313 * (*G) + 0.5 * (*B) + 128;
-	*V = 0.5 * (*R) - 0.4187 * (*G) - 0.0813 * (*B) + 128;
-	
-	/*
-	Y= 0.299 * R + 0.587 * G + 0.114 * B;
-  	U= -0.147 * R - 0.289 * G + 0.436 * B;
-  	V= 0.615 * R - 0.515 * G - 0.100 * B;
-  	*/
+/*	Y = 0.299 * R + 0.587 * G + 0.114 * B;
+	U = - 0.1687 * R - 0.3313 * G + 0.5 * B + 128;
+	V = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
+*/
+	char tmp1[8],tmp2[8];
+	char u_tmp[8],v_tmp[8];
+
+	BYTE r_tmp[8],g_tmp[8],b_tmp[8];
+
+	//Y
+	memcpy(r_tmp,rr,8);
+	memcpy(g_tmp,gg,8);
+	memcpy(b_tmp,bb,8);
+
+	for(int i=0;i<=7;++i)
+	{
+		r_tmp[i]*=0.299;
+		g_tmp[i]*=0.587;
+		b_tmp[i]*=0.114;
+	}
+
+	for(int i=0;i<=7;++i)
+		yy[i]=r_tmp[i]+g_tmp[i]+b_tmp[i];
+
+	//U
+	memcpy(r_tmp,rr,8);
+	memcpy(g_tmp,gg,8);
+	memcpy(b_tmp,bb,8);
+
+	for(int i=0;i<=7;++i)
+	{
+		r_tmp[i]*=-0.1687;
+		g_tmp[i]*=-0.3313;
+		b_tmp[i]*=0.5;
+	}	
+
+	for(int i=0;i<=7;++i)
+		uu[i]=r_tmp[i]+g_tmp[i]+b_tmp[i]+128;
+
+	//V
+	memcpy(r_tmp,rr,8);
+	memcpy(g_tmp,gg,8);
+	memcpy(b_tmp,bb,8);
+
+	for(int i=0;i<=7;++i)
+	{
+		r_tmp[i]*=0.5;
+		g_tmp[i]*=-0.4187;
+		b_tmp[i]*=-0.0813;
+	}	
+
+	for(int i=0;i<=7;++i)
+		vv[i]=r_tmp[i]+g_tmp[i]+b_tmp[i]+128;
 }
 
 int main()
@@ -69,66 +145,58 @@ int main()
 
 	unsigned char alpha=255;
 	int num=0,idx;
-	unsigned char Y,U,V,R,G,B;
-	string str;
-	
+
+	BYTE yy[8],uu[8],vv[8];
+	BYTE R[Height*Width],G[Height*Width],B[Height*Width];
+	BYTE buffer_tu[8],buffer_tv[8];
+
     start = clock();
     fp_out = fopen("part2-2.yuv","wb");
+
 	for( ; num < 86; alpha -=3 )
 	{
-		//printf("num=%d\n",num);
-		
-		
-		//stringstream ss;
-		//ss<<num;
 		num++;
 
-		//str=ss.str();
-		//str+=".yuv";
-		//fp_out=fopen(str.c_str(),"wb");
 		if(fp_out==NULL)
 		{
 			printf("Error: open file failed\n");
 			return 0;
 		}
-		//fwrite(&bmp_head,1,sizeof(FileHead),fp_out);
-		//fwrite(&bmp_info,1,sizeof(Infohead),fp_out);
 		
-		for(int pixel=0;pixel<Height*Width;++pixel)
+		for(int pixel=0;pixel<Height*Width;pixel += 8)
 		{
-			Y = buffer_y[pixel];
-			
-			idx=(pixel/(2*Width))*Width/2  + (pixel-(pixel/Width)*Width)/2;
-			U = buffer_u[idx];
-			V = buffer_v[idx];
+			for(int i=0;i<=7;++i)
+			{
+				yy[i]=buffer_y[pixel+i];
+				
+				idx=((pixel+i)/(2*Width))*Width/2 +(pixel+i-((pixel+i)/Width)*Width)/2;
+				uu[i]=buffer_u[idx];
+				vv[i]=buffer_v[idx];
+			}
 			
 			//YUV2RGB
-			YUV2RGB(&Y,&U,&V,&R,&G,&B);
+			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
 		
-			R = R*alpha/256;
-			G = G*alpha/256;
-			B = B*alpha/256;
+			for (int i = 0; i < 8; ++i)
+			{
+				R[pixel+i] = R[pixel+i]*alpha/256;
+				G[pixel+i] = G[pixel+i]*alpha/256;
+				B[pixel+i] = B[pixel+i]*alpha/256;
+			}	
 			
-			//printf("R:%d, G:%d, B:%d\n",R,G,B);
-			/*
-			buffer[pixel].r=R;
-			buffer[pixel].g=G;
-			buffer[pixel].b=B;
-			buffer[pixel].a=alpha;
-			*/
-			RGB2YUV(&Y,&U,&V,&R,&G,&B);
-			buffer_wy[pixel] = Y;
-			buffer_wu[idx] = U;
-			buffer_wv[idx] = V;
+			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
 
-			//fprintf(fp_out, "%c%c%c%c", alpha,R,G,B);
+			for (int i = 0; i < 8; i+=2)
+			{
+				buffer_wu[idx-i/2] = buffer_tu[8-i-1];	
+				buffer_wv[idx-i/2] = buffer_tv[8-i-1];	
+			}			
 
 		}
 		fwrite((BYTE*)buffer_wy,1,Height*Width,fp_out);
 		fwrite((BYTE*)buffer_wu,1,Height*Width/4,fp_out);
 		fwrite((BYTE*)buffer_wv,1,Height*Width/4,fp_out);
-		//fwrite((BYTE*)buffer,1,Height*Width*4,fp_out);
-		//fclose(fp_out);
+
 	}
 	fclose(fp_out);
 	stop = clock();
