@@ -49,8 +49,6 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 	tmp1 = _mm_sub_pi8 (*U , n1);   // mmx U-128 signed
 	tmp2 = _mm_sub_pi8 (*V , n1);   //	mmx V-128 signed
 
-	memcpy(&v_tmp,&tmp2,8);
-	memcpy(&u_tmp,&tmp1,8);
 	/*
 	printf("U-128:");
 	for(int i=0;i<=7;++i)
@@ -209,7 +207,7 @@ int main()
 
 	unsigned char alpha=255;
 	int num=0,idx;
-	
+
 	BYTE yy[8],uu[8],vv[8];
 	BYTE R[Height*Width],G[Height*Width],B[Height*Width];
 	BYTE buffer_tu[8],buffer_tv[8];
