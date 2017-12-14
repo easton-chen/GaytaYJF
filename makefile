@@ -20,4 +20,4 @@ part3_MMX: part3_MMX.cpp
 .PHONY: clean
 
 clean:
-	rm -rf $(PART2)
+	rm -rf $(PART2) p*.yuv
