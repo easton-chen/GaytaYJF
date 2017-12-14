@@ -53,9 +53,6 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         :"r"(uu),"r"(vv),"r"(half)
     );
     
-	
-    
-    
     char v_tmp[16],u_tmp[16];
     float ratio_v[4],ratio_u[4];
     float v_f[4],u_f[4];
@@ -537,7 +534,7 @@ int main()
 		}
 		
 		BYTE yy[16],uu[16],vv[16];
-		BYTE R[Height*Width],G[Height*Width],B[Height*Width];
+		BYTE R[16],G[16],B[16];
 
 		for(int pixel=0;pixel<Height*Width; pixel += 16)
 		{
@@ -554,7 +551,7 @@ int main()
 			
 			//YUV2RGB
 
-			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
+			YUV2RGB(yy,uu,vv,R,G,B);
             /*
 			for (int i = 0; i < 16; ++i)
 			{
@@ -564,7 +561,7 @@ int main()
 			}	
 			*/
 			BYTE buffer_tu[16],buffer_tv[16];
-			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
+			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R,G,B);
 			
 			for (int i = 0; i < 16; i+=2)
 			{

@@ -19,7 +19,7 @@ part2_AVX: part2_AVX.cpp
 	g++ -o part2_AVX part2_AVX.cpp
 
 part3: part3.cpp
-	g++ $(NOMMX) $(NOSSE) $(NOSSE2) -g -o part3 part3.cpp
+	g++ $(NOMMX) $(NOSSE) $(NOSSE2) -o part3 part3.cpp
 
 part3_MMX: part3_MMX.cpp	 
 	g++ $(NOSSE) $(NOSSE2) -o part3_MMX part3_MMX.cpp
