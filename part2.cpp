@@ -151,7 +151,7 @@ int main()
 	BYTE buffer_tu[8],buffer_tv[8];
 
     start = clock();
-    fp_out = fopen("part2-2.yuv","wb");
+    fp_out = fopen("part2.yuv","wb");
 
 	for( ; num < 86; alpha -=3 )
 	{
