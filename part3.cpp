@@ -216,7 +216,6 @@ int main()
 	}
 	fclose(fp_out);
 	stop = clock();
-	printf("start=%lu stop=%lu\n stop-start=%lu\n", start,stop,(stop-start));
 	duration = ((stop - start))*1000/ CLOCKS_PER_SEC;
 	printf("total time= %d ms\n", duration);
 	return 0;

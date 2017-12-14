@@ -10,7 +10,7 @@ using namespace std;
 #define Width  1920
 FILE* fp_dem1=NULL,*fp_dem2=NULL,*fp_out=NULL;
 clock_t start, stop;
-double duration;
+int duration;
 unsigned char alpha;
 
 typedef int LONG;
@@ -616,6 +616,7 @@ int main()
                 :
                 :"r"(R1_f),"r"(G1_f),"r"(B1_f),"r"(R2_f),"r"(G2_f),"r"(B2_f),"r"(a1),"r"(a2),"r"(base)
             );
+
 			for (int i = 0; i < 16; ++i)
             {
                 R1[i] = R1_f[i];
@@ -625,6 +626,7 @@ int main()
                 B1[i] = B1_f[i];
                 B2[i] = B2_f[i];
             }
+            
 			BYTE buffer_tu[16],buffer_tv[16];
 			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R1,G1,B1);
 			
@@ -641,7 +643,7 @@ int main()
 	fclose(fp_out);
 	stop = clock();
 	//printf("start=%lu stop=%lu\n stop-start=%lf\n", start,stop,1.0*(stop-start));
-	duration = ((double)(stop - start))*1000/ CLOCKS_PER_SEC;
-	printf("total time= %f ms\n", duration);
+	duration = (stop - start)*1000/ CLOCKS_PER_SEC;
+	printf("total time= %d ms\n", duration);
 	return 0;
 }

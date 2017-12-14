@@ -1,8 +1,9 @@
 PART2=part2 part2_MMX part2_SSE part2_AVX 
-PART3=part3 part3_MMX part3_SSE
+PART3=part3 part3_MMX part3_SSE part3_AVX
 NOMMX=-mno-mmx 
 NOSSE=-mno-sse
 NOSSE2=-mno-sse2 
+AVX=-mavx
 
 all: $(PART2) $(PART3)
 
@@ -16,7 +17,7 @@ part2_SSE: part2_SSE.cpp
 	g++ -o part2_SSE part2_SSE.cpp
 
 part2_AVX: part2_AVX.cpp
-	g++ -mavx -o part2_AVX part2_AVX.cpp
+	g++ $(AVX) -o part2_AVX part2_AVX.cpp
 
 part3: part3.cpp
 	g++ $(NOMMX) $(NOSSE) $(NOSSE2) -o part3 part3.cpp
@@ -26,6 +27,9 @@ part3_MMX: part3_MMX.cpp
 
 part3_SSE: part3_SSE.cpp
 	g++ -o part3_SSE part3_SSE.cpp
+
+part3_AVX: part3_AVX.cpp
+	g++ $(AVX) -o part3_AVX part3_AVX.cpp
 
 .PHONY: clean
 
