@@ -11,6 +11,7 @@ using namespace std;
 FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
 double duration;
+unsigned char alpha;
 
 typedef int LONG;
 typedef unsigned char BYTE;
@@ -178,45 +179,142 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     	half[i] = 0x80;
     }
     BYTE r_tmp[16],g_tmp[16],b_tmp[16];
-    float r_f[4],g_f[4],b_f[4];
+    float r_f[16],g_f[16],b_f[16];
+    float rr_f[16],gg_f[16],bb_f[16];
     float ratio_r[4],ratio_g[4],ratio_b[4];
+    //alpha
+    float a[4],base[4];
+    a[0]=a[1]=a[2]=a[3]=alpha;
+    base[0]=base[1]=base[2]=base[3]=256;
+    for (int j = 0; j < 16; ++j)
+    {
+        rr_f[j] = rr[j];
+        gg_f[j] = gg[j];
+        bb_f[j] = bb[j];
+    }
+ 
+    __asm__(
+        "movups (%3),%%xmm1\n"
+        "movups (%4),%%xmm2\n"
+        "movups (%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,(%0)\n"
+        "movups 16(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,16(%0)\n"
+        "movups 32(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,32(%0)\n"
+        "movups 48(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,48(%0)\n"
+        
+        "movups (%1),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,(%1)\n"
+        "movups 16(%1),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,16(%1)\n"
+        "movups 32(%1),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,32(%1)\n"
+        "movups 48(%1),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,48(%1)\n"
+        
+        "movups (%2),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,(%2)\n"
+        "movups 16(%2),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,16(%2)\n"
+        "movups 32(%2),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,32(%2)\n"
+        "movups 48(%2),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "divps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,48(%2)\n"
+        :
+        :"r"(rr_f),"r"(gg_f),"r"(bb_f),"r"(a),"r"(base)
+    );
+    
+
 
     //Y   Y = 0.299 * R + 0.587 * G + 0.114 * B;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.299;
     ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = 0.587;
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = 0.114;
-    for(int i=0;i<16;i+=4)
+    for (int j = 0; j < 16; ++j)
     {
-    	for (int j = 0; j < 4; ++j)
-    	{
-    		r_f[j] = rr[i+j];
-    		g_f[j] = gg[i+j];
-    		b_f[j] = bb[i+j];
-    	}
-    	__asm__(
-    		"movups (%0),%%xmm0\n"
-    		"movups (%1),%%xmm1\n"
-    		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,(%0)\n"
-			"movups (%2),%%xmm0\n"
-    		"movups (%3),%%xmm1\n"
-    		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,(%2)\n"
-    		"movups (%4),%%xmm0\n"
-    		"movups (%5),%%xmm1\n"
-    		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,(%4)\n"
-            :
-    		:"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
-    	);
-    	for (int j = 0; j < 4; ++j)
-    	{
-        	r_tmp[i+j] = r_f[j];
-        	g_tmp[i+j] = g_f[j];
-        	b_tmp[i+j] = b_f[j];
-    	}
+        r_f[j] = rr_f[j];
+        g_f[j] = gg_f[j];
+        b_f[j] = bb_f[j];
     }
     
+	__asm__(
+		"movups 0(%0),%%xmm0\n"
+		"movups (%1),%%xmm1\n"
+		"mulps %%xmm1,%%xmm0\n"
+		"movups %%xmm0,0(%0)\n"
+		"movups 0(%2),%%xmm0\n"
+		"movups (%3),%%xmm2\n"
+		"mulps %%xmm2,%%xmm0\n"
+		"movups %%xmm0,0(%2)\n"
+		"movups 0(%4),%%xmm0\n"
+		"movups (%5),%%xmm3\n"
+		"mulps %%xmm3,%%xmm0\n"
+		"movups %%xmm0,0(%4)\n"
+
+        "movups 16(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,16(%0)\n"
+        "movups 16(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,16(%2)\n"
+        "movups 16(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,16(%4)\n"
+
+        "movups 32(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,32(%0)\n"
+        "movups 32(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,32(%2)\n"
+        "movups 32(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,32(%4)\n"
+
+        "movups 48(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,48(%0)\n"
+        "movups 48(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,48(%2)\n"
+        "movups 48(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,48(%4)\n"
+        :
+		:"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+	);
+    for (int j = 0; j < 16; ++j)
+    {
+        r_tmp[j] = r_f[j];
+        g_tmp[j] = g_f[j];
+        b_tmp[j] = b_f[j];
+    }
 
 	
     __asm__(
@@ -237,36 +335,64 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = - 0.1687;
     ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = - 0.3313;
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = 0.5;
-    for(int i=0;i<16;i+=4)
+    for (int j = 0; j < 16; ++j)
     {
-        for (int j = 0; j < 4; ++j)
-        {
-            r_f[j] = rr[i+j];
-            g_f[j] = gg[i+j];
-            b_f[j] = bb[i+j];
-        }
-        __asm__(
-            "movups (%0),%%xmm0\n"
-            "movups (%1),%%xmm1\n"
-            "mulps %%xmm1,%%xmm0\n"
-            "movups %%xmm0,(%0)\n"
-            "movups (%2),%%xmm0\n"
-            "movups (%3),%%xmm1\n"
-            "mulps %%xmm1,%%xmm0\n"
-            "movups %%xmm0,(%2)\n"
-            "movups (%4),%%xmm0\n"
-            "movups (%5),%%xmm1\n"
-            "mulps %%xmm1,%%xmm0\n"
-            "movups %%xmm0,(%4)\n"
-            :
-            :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
-        );
-        for (int j = 0; j < 4; ++j)
-        {
-            r_tmp[i+j] = r_f[j];
-            g_tmp[i+j] = g_f[j];
-            b_tmp[i+j] = b_f[j];
-        }
+        r_f[j] = rr_f[j];
+        g_f[j] = gg_f[j];
+        b_f[j] = bb_f[j];
+    }
+    
+    __asm__(
+        "movups 0(%0),%%xmm0\n"
+        "movups (%1),%%xmm1\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,0(%0)\n"
+        "movups 0(%2),%%xmm0\n"
+        "movups (%3),%%xmm2\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,0(%2)\n"
+        "movups 0(%4),%%xmm0\n"
+        "movups (%5),%%xmm3\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,0(%4)\n"
+
+        "movups 16(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,16(%0)\n"
+        "movups 16(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,16(%2)\n"
+        "movups 16(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,16(%4)\n"
+
+        "movups 32(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,32(%0)\n"
+        "movups 32(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,32(%2)\n"
+        "movups 32(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,32(%4)\n"
+
+        "movups 48(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,48(%0)\n"
+        "movups 48(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,48(%2)\n"
+        "movups 48(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,48(%4)\n"
+        :
+        :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+    );
+    for (int j = 0; j < 16; ++j)
+    {
+        r_tmp[j] = r_f[j];
+        g_tmp[j] = g_f[j];
+        b_tmp[j] = b_f[j];
     }
     
 
@@ -292,36 +418,64 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.5;
     ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = -0.4187;
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = -0.0813 ;
-    for(int i=0;i<16;i+=4)
+    for (int j = 0; j < 16; ++j)
     {
-        for (int j = 0; j < 4; ++j)
-        {
-            r_f[j] = rr[i+j];
-            g_f[j] = gg[i+j];
-            b_f[j] = bb[i+j];
-        }
-        __asm__(
-            "movups (%0),%%xmm0\n"
-            "movups (%1),%%xmm1\n"
-            "mulps %%xmm1,%%xmm0\n"
-            "movups %%xmm0,(%0)\n"
-            "movups (%2),%%xmm0\n"
-            "movups (%3),%%xmm1\n"
-            "mulps %%xmm1,%%xmm0\n"
-            "movups %%xmm0,(%2)\n"
-            "movups (%4),%%xmm0\n"
-            "movups (%5),%%xmm1\n"
-            "mulps %%xmm1,%%xmm0\n"
-            "movups %%xmm0,(%4)\n"
-            :
-            :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
-        );
-        for (int j = 0; j < 4; ++j)
-        {
-            r_tmp[i+j] = r_f[j];
-            g_tmp[i+j] = g_f[j];
-            b_tmp[i+j] = b_f[j];
-        }
+        r_f[j] = rr_f[j];
+        g_f[j] = gg_f[j];
+        b_f[j] = bb_f[j];
+    }
+    
+    __asm__(
+        "movups 0(%0),%%xmm0\n"
+        "movups (%1),%%xmm1\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,0(%0)\n"
+        "movups 0(%2),%%xmm0\n"
+        "movups (%3),%%xmm2\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,0(%2)\n"
+        "movups 0(%4),%%xmm0\n"
+        "movups (%5),%%xmm3\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,0(%4)\n"
+
+        "movups 16(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,16(%0)\n"
+        "movups 16(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,16(%2)\n"
+        "movups 16(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,16(%4)\n"
+
+        "movups 32(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,32(%0)\n"
+        "movups 32(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,32(%2)\n"
+        "movups 32(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,32(%4)\n"
+
+        "movups 48(%0),%%xmm0\n"
+        "mulps %%xmm1,%%xmm0\n"
+        "movups %%xmm0,48(%0)\n"
+        "movups 48(%2),%%xmm0\n"
+        "mulps %%xmm2,%%xmm0\n"
+        "movups %%xmm0,48(%2)\n"
+        "movups 48(%4),%%xmm0\n"
+        "mulps %%xmm3,%%xmm0\n"
+        "movups %%xmm0,48(%4)\n"
+        :
+        :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+    );
+    for (int j = 0; j < 16; ++j)
+    {
+        r_tmp[j] = r_f[j];
+        g_tmp[j] = g_f[j];
+        b_tmp[j] = b_f[j];
     }
     
 
@@ -366,7 +520,7 @@ int main()
 	
 	fclose(fp_in);
 
-	unsigned char alpha=255;
+	alpha=255;
 	int num=0;
 	unsigned char Y,U,V,R,G,B;
 	string str;
@@ -401,15 +555,14 @@ int main()
 			//YUV2RGB
 
 			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
-
-            
+            /*
 			for (int i = 0; i < 16; ++i)
 			{
 				R[pixel+i] = R[pixel+i]*alpha/256;
 				G[pixel+i] = G[pixel+i]*alpha/256;
 				B[pixel+i] = B[pixel+i]*alpha/256;
 			}	
-			
+			*/
 			BYTE buffer_tu[16],buffer_tv[16];
 			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
 			
