@@ -169,76 +169,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     }
     BYTE r_tmp[16],g_tmp[16],b_tmp[16];
     float r_f[16],g_f[16],b_f[16];
-    float rr_f[16],gg_f[16],bb_f[16];
-    float ratio_r[4],ratio_g[4],ratio_b[4];
-    //alpha
-    float a[4],base[4];
-    a[0]=a[1]=a[2]=a[3]=alpha;
-    base[0]=base[1]=base[2]=base[3]=256;
-    for (int j = 0; j < 16; ++j)
-    {
-        rr_f[j] = rr[j];
-        gg_f[j] = gg[j];
-        bb_f[j] = bb[j];
-    }
- 
-    __asm__(
-        "movups (%3),%%xmm1\n"
-        "movups (%4),%%xmm2\n"
-        "movups (%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,(%0)\n"
-        "movups 16(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%0)\n"
-        "movups 32(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%0)\n"
-        "movups 48(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%0)\n"
-        
-        "movups (%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,(%1)\n"
-        "movups 16(%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%1)\n"
-        "movups 32(%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%1)\n"
-        "movups 48(%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%1)\n"
-        
-        "movups (%2),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,(%2)\n"
-        "movups 16(%2),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%2)\n"
-        "movups 32(%2),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%2)\n"
-        "movups 48(%2),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%2)\n"
-        :
-        :"r"(rr_f),"r"(gg_f),"r"(bb_f),"r"(a),"r"(base)
-    );
     
+    float ratio_r[4],ratio_g[4],ratio_b[4];
 
 
     //Y   Y = 0.299 * R + 0.587 * G + 0.114 * B;
@@ -247,9 +179,9 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = 0.114;
     for (int j = 0; j < 16; ++j)
     {
-        r_f[j] = rr_f[j];
-        g_f[j] = gg_f[j];
-        b_f[j] = bb_f[j];
+        r_f[j] = rr[j];
+        g_f[j] = gg[j];
+        b_f[j] = bb[j];
     }
     
 	__asm__(
@@ -326,9 +258,9 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = 0.5;
     for (int j = 0; j < 16; ++j)
     {
-        r_f[j] = rr_f[j];
-        g_f[j] = gg_f[j];
-        b_f[j] = bb_f[j];
+        r_f[j] = rr[j];
+        g_f[j] = gg[j];
+        b_f[j] = bb[j];
     }
     
     __asm__(
@@ -409,9 +341,9 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     ratio_b[0] = ratio_b[1] = ratio_b[2] = ratio_b[3] = -0.0813 ;
     for (int j = 0; j < 16; ++j)
     {
-        r_f[j] = rr_f[j];
-        g_f[j] = gg_f[j];
-        b_f[j] = bb_f[j];
+        r_f[j] = rr[j];
+        g_f[j] = gg[j];
+        b_f[j] = bb[j];
     }
     
     __asm__(
@@ -525,18 +457,21 @@ int main()
     int num=0,idx;
     //unsigned char Y,U,V,R,G,B,Y1,Y2,U1,U2,V1,V2,R1,R2,G1,G2,B1,B2;
 
-    BYTE yy1[8],uu1[8],vv1[8];
-    BYTE yy2[8],uu2[8],vv2[8];
+    BYTE yy1[16],uu1[16],vv1[16];
+    BYTE yy2[16],uu2[16],vv2[16];
     
-    BYTE R1[8],G1[8],B1[8];
-    BYTE R2[8],G2[8],B2[8];
+    BYTE R1[16],G1[16],B1[16];
+    BYTE R2[16],G2[16],B2[16];
 
-    BYTE R[8],G[8],B[8];
+    BYTE R[16],G[16],B[16];
     
-    BYTE buffer_tu[8],buffer_tv[8];
+    BYTE buffer_tu[16],buffer_tv[16];
 
+    float a1[4],base[4],a2[4];
+    float R1_f[16],G1_f[16],B1_f[16];
+    float R2_f[16],G2_f[16],B2_f[16];
     start = clock();
-    fp_out = fopen("part2-SSE.yuv","wb");
+    fp_out = fopen("part3-SSE.yuv","wb");
 	for( ; num < 86; alpha -=3 )
 	{
 		num++;
@@ -545,9 +480,6 @@ int main()
 			printf("Error: open file failed\n");
 			return 0;
 		}
-		
-		BYTE yy[16],uu[16],vv[16];
-		BYTE R[Height*Width],G[Height*Width],B[Height*Width];
 
 		for(int pixel=0;pixel<Height*Width; pixel += 16)
 		{
@@ -556,25 +488,145 @@ int main()
 			// get 8 Y, 8 U, 8 V 
 			for(int i=0;i<16;++i)
 			{
-				yy[i]=buffer_y[pixel+i];
+				yy1[i]=buffer_y_dem1[pixel+i];
+                yy2[i]=buffer_y_dem2[pixel+i];
 				idx=((pixel+i)/(2*Width))*Width/2 +(pixel+i-((pixel+i)/Width)*Width)/2;
-				uu[i]=buffer_u[idx];
-				vv[i]=buffer_v[idx];
+				uu1[i]=buffer_u_dem1[idx];
+                uu2[i]=buffer_u_dem2[idx];
+				vv1[i]=buffer_v_dem1[idx];
+                vv2[i]=buffer_v_dem2[idx];
 			}
 			
 			//YUV2RGB
 
-			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
+			YUV2RGB(yy1,uu1,vv1,R1,G1,B1);
+            YUV2RGB(yy2,uu2,vv2,R2,G2,B2);
+            
             /*
 			for (int i = 0; i < 16; ++i)
-			{
-				R[pixel+i] = R[pixel+i]*alpha/256;
-				G[pixel+i] = G[pixel+i]*alpha/256;
-				B[pixel+i] = B[pixel+i]*alpha/256;
-			}	
-			*/
+            {
+                R[i] = ( R1[i] * alpha + R2[i] * (256-alpha) )/256;
+                G[i] = ( G1[i] * alpha + G2[i] * (256-alpha) )/256;
+                B[i] = ( B1[i] * alpha + B2[i] * (256-alpha) )/256;
+            }*/
+            
+            a1[0]=a1[1]=a1[2]=a1[3]=alpha;
+            a2[0]=a2[1]=a2[2]=a2[3]=256-alpha;
+            base[0]=base[1]=base[2]=base[3]=256;
+            for (int i = 0; i < 16; ++i)
+            {
+                R1_f[i] = R1[i];
+                R2_f[i] = R2[i];
+                G1_f[i] = G1[i];
+                G2_f[i] = G2[i];
+                B1_f[i] = B1[i];
+                B2_f[i] = B2[i];
+            }
+            __asm__(
+                "movups (%6),%%xmm2\n"  //a1
+                "movups (%7),%%xmm3\n"  //a2
+                "movups (%8),%%xmm4\n"  //256
+                "movups (%0),%%xmm0\n"
+                "movups (%3),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,(%0)\n"
+                "movups (%1),%%xmm0\n"
+                "movups (%4),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,(%1)\n"
+                "movups (%2),%%xmm0\n"
+                "movups (%5),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,(%2)\n"
+
+                "movups 16(%0),%%xmm0\n"
+                "movups 16(%3),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,16(%0)\n"
+                "movups 16(%1),%%xmm0\n"
+                "movups 16(%4),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,16(%1)\n"
+                "movups 16(%2),%%xmm0\n"
+                "movups 16(%5),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,16(%2)\n"
+
+                "movups 32(%0),%%xmm0\n"
+                "movups 32(%3),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,32(%0)\n"
+                "movups 32(%1),%%xmm0\n"
+                "movups 32(%4),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,32(%1)\n"
+                "movups 32(%2),%%xmm0\n"
+                "movups 32(%5),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,32(%2)\n"
+
+                "movups 48(%0),%%xmm0\n"
+                "movups 48(%3),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,48(%0)\n"
+                "movups 48(%1),%%xmm0\n"
+                "movups 48(%4),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,48(%1)\n"
+                "movups 48(%2),%%xmm0\n"
+                "movups 48(%5),%%xmm1\n"
+                "mulps %%xmm2,%%xmm0\n"
+                "mulps %%xmm3,%%xmm1\n"
+                "addps %%xmm1,%%xmm0\n"
+                "divps %%xmm4,%%xmm0\n"
+                "movups %%xmm0,48(%2)\n"
+                :
+                :"r"(R1_f),"r"(G1_f),"r"(B1_f),"r"(R2_f),"r"(G2_f),"r"(B2_f),"r"(a1),"r"(a2),"r"(base)
+            );
+			for (int i = 0; i < 16; ++i)
+            {
+                R1[i] = R1_f[i];
+                R2[i] = R2_f[i];
+                G1[i] = G1_f[i];
+                G2[i] = G2_f[i];
+                B1[i] = B1_f[i];
+                B2[i] = B2_f[i];
+            }
 			BYTE buffer_tu[16],buffer_tv[16];
-			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
+			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R1,G1,B1);
 			
 			for (int i = 0; i < 16; i+=2)
 			{
