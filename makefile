@@ -16,7 +16,7 @@ part2_SSE: part2_SSE.cpp
 	g++ -o part2_SSE part2_SSE.cpp
 
 part2_AVX: part2_AVX.cpp
-	g++ -o part2_AVX part2_AVX.cpp
+	g++ -mavx -o part2_AVX part2_AVX.cpp
 
 part3: part3.cpp
 	g++ $(NOMMX) $(NOSSE) $(NOSSE2) -o part3 part3.cpp

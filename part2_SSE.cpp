@@ -10,6 +10,7 @@ using namespace std;
 #define Width  1920
 FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
+clock_t s,e;
 double duration;
 unsigned char alpha;
 
@@ -18,17 +19,6 @@ typedef unsigned char BYTE;
 typedef unsigned int DWORD;
 typedef unsigned short WORD;
 
-
-__m64 Get_m64(long long n)
-{
-	union __m64__m64
-	{
-		__m64 m;
-		long long i;
-	}mi;
-	mi.i=n;
-	return mi.m;
-}
 int cnt=0;
 void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 {
@@ -189,7 +179,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         gg_f[j] = gg[j];
         bb_f[j] = bb[j];
     }
- 
+
+  //  s = clock();
     __asm__(
         "movups (%3),%%xmm1\n"
         "movups (%4),%%xmm2\n"
@@ -246,7 +237,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         :
         :"r"(rr_f),"r"(gg_f),"r"(bb_f),"r"(a),"r"(base)
     );
-    
+  //  e = clock();
+   // printf("alpha time=\t%lu\n", e-s);
 
 
     //Y   Y = 0.299 * R + 0.587 * G + 0.114 * B;
@@ -259,7 +251,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         g_f[j] = gg_f[j];
         b_f[j] = bb_f[j];
     }
-    
+   // s = clock();
 	__asm__(
 		"movups 0(%0),%%xmm0\n"
 		"movups (%1),%%xmm1\n"
@@ -327,7 +319,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         :
         :"r"(yy),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) 
     );
-
+   // e = clock();
+    //printf("Y time=\t%lu\n", e-s);
     //U   U = - 0.1687 * R - 0.3313 * G + 0.5 * B + 128;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = - 0.1687;
     ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = - 0.3313;
@@ -338,7 +331,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         g_f[j] = gg_f[j];
         b_f[j] = bb_f[j];
     }
-    
+   // s=clock();
     __asm__(
         "movups 0(%0),%%xmm0\n"
         "movups (%1),%%xmm1\n"
@@ -409,7 +402,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         :
         :"r"(uu),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) ,"r"(half) 
     );
-
+   // e=clock();
+   // printf("U time=\t%lu\n", e-s);
 
     //V  V = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.5;
@@ -421,7 +415,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         g_f[j] = gg_f[j];
         b_f[j] = bb_f[j];
     }
-    
+    //s=clock();
     __asm__(
         "movups 0(%0),%%xmm0\n"
         "movups (%1),%%xmm1\n"
@@ -492,7 +486,8 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         :
         :"r"(vv),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) ,"r"(half) 
     );
-
+    //e=clock();
+    //printf("V time=\t%lu\n", e-s);
 }
 
 int main()
