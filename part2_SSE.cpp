@@ -180,66 +180,40 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         bb_f[j] = bb[j];
     }
 
-  //  s = clock();
     __asm__(
         "movups (%3),%%xmm1\n"
         "movups (%4),%%xmm2\n"
-        "movups (%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,(%0)\n"
-        "movups 16(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%0)\n"
-        "movups 32(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%0)\n"
-        "movups 48(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%0)\n"
         
-        "movups (%1),%%xmm0\n"
+        "movq $0,%%rdx\n"
+        "movq $4,%%rcx\n"
+        "LRa:movups (%0,%%rdx,4),%%xmm0\n"
         "mulps %%xmm1,%%xmm0\n"
         "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,(%1)\n"
-        "movups 16(%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%1)\n"
-        "movups 32(%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%1)\n"
-        "movups 48(%1),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%1)\n"
+        "movups %%xmm0,(%0,%%rdx,4)\n"
+        "add $4,%%rdx\n"
+        "loop LRa\n"
         
-        "movups (%2),%%xmm0\n"
+        "movq $0,%%rdx\n"
+        "movq $4,%%rcx\n"
+        "LGa:movups (%1,%%rdx,4),%%xmm0\n"
         "mulps %%xmm1,%%xmm0\n"
         "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,(%2)\n"
-        "movups 16(%2),%%xmm0\n"
+        "movups %%xmm0,(%1,%%rdx,4)\n"
+        "add $4,%%rdx\n"
+        "loop LGa\n"
+        
+        "movq $0,%%rdx\n"
+        "movq $4,%%rcx\n"
+        "LBa:movups (%2,%%rdx,4),%%xmm0\n"
         "mulps %%xmm1,%%xmm0\n"
         "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%2)\n"
-        "movups 32(%2),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%2)\n"
-        "movups 48(%2),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "divps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%2)\n"
+        "movups %%xmm0,(%2,%%rdx,4)\n"
+        "add $4,%%rdx\n"
+        "loop LBa"
         :
         :"r"(rr_f),"r"(gg_f),"r"(bb_f),"r"(a),"r"(base)
+        :"%rcx","%rdx"
     );
-  //  e = clock();
-   // printf("alpha time=\t%lu\n", e-s);
-
 
     //Y   Y = 0.299 * R + 0.587 * G + 0.114 * B;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.299;
@@ -251,52 +225,27 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         g_f[j] = gg_f[j];
         b_f[j] = bb_f[j];
     }
-   // s = clock();
+   
 	__asm__(
-		"movups 0(%0),%%xmm0\n"
+        "movq $0,%%rdx\n"
+        "movq $4,%%rcx\n"
+		"LY:movups (%0,%%rdx,4),%%xmm0\n"
 		"movups (%1),%%xmm1\n"
 		"mulps %%xmm1,%%xmm0\n"
-		"movups %%xmm0,0(%0)\n"
-		"movups 0(%2),%%xmm0\n"
+		"movups %%xmm0,0(%0,%%rdx,4)\n"
+		"movups (%2,%%rdx,4),%%xmm0\n"
 		"movups (%3),%%xmm2\n"
 		"mulps %%xmm2,%%xmm0\n"
-		"movups %%xmm0,0(%2)\n"
-		"movups 0(%4),%%xmm0\n"
+		"movups %%xmm0,(%2,%%rdx,4)\n"
+		"movups (%4,%%rdx,4),%%xmm0\n"
 		"movups (%5),%%xmm3\n"
 		"mulps %%xmm3,%%xmm0\n"
-		"movups %%xmm0,0(%4)\n"
-
-        "movups 16(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,16(%0)\n"
-        "movups 16(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%2)\n"
-        "movups 16(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,16(%4)\n"
-
-        "movups 32(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,32(%0)\n"
-        "movups 32(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%2)\n"
-        "movups 32(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,32(%4)\n"
-
-        "movups 48(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,48(%0)\n"
-        "movups 48(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%2)\n"
-        "movups 48(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,48(%4)\n"
+		"movups %%xmm0,(%4,%%rdx,4)\n"
+        "add $4,%%rdx\n"
+        "loop LY\n"
         :
 		:"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+        :"%rcx","%rdx"
 	);
     for (int j = 0; j < 16; ++j)
     {
@@ -333,50 +282,25 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     }
    // s=clock();
     __asm__(
-        "movups 0(%0),%%xmm0\n"
+        "movq $0,%%rdx\n"
+        "movq $4,%%rcx\n"
+        "LU:movups (%0,%%rdx,4),%%xmm0\n"
         "movups (%1),%%xmm1\n"
         "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,0(%0)\n"
-        "movups 0(%2),%%xmm0\n"
+        "movups %%xmm0,0(%0,%%rdx,4)\n"
+        "movups (%2,%%rdx,4),%%xmm0\n"
         "movups (%3),%%xmm2\n"
         "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,0(%2)\n"
-        "movups 0(%4),%%xmm0\n"
+        "movups %%xmm0,(%2,%%rdx,4)\n"
+        "movups (%4,%%rdx,4),%%xmm0\n"
         "movups (%5),%%xmm3\n"
         "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,0(%4)\n"
-
-        "movups 16(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,16(%0)\n"
-        "movups 16(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%2)\n"
-        "movups 16(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,16(%4)\n"
-
-        "movups 32(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,32(%0)\n"
-        "movups 32(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%2)\n"
-        "movups 32(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,32(%4)\n"
-
-        "movups 48(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,48(%0)\n"
-        "movups 48(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%2)\n"
-        "movups 48(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,48(%4)\n"
+        "movups %%xmm0,(%4,%%rdx,4)\n"
+        "add $4,%%rdx\n"
+        "loop LU\n"
         :
         :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+        :"%rcx","%rdx"
     );
     for (int j = 0; j < 16; ++j)
     {
@@ -415,52 +339,27 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         g_f[j] = gg_f[j];
         b_f[j] = bb_f[j];
     }
-    //s=clock();
+
     __asm__(
-        "movups 0(%0),%%xmm0\n"
+        "movq $0,%%rdx\n"
+        "movq $4,%%rcx\n"
+        "LV:movups (%0,%%rdx,4),%%xmm0\n"
         "movups (%1),%%xmm1\n"
         "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,0(%0)\n"
-        "movups 0(%2),%%xmm0\n"
+        "movups %%xmm0,0(%0,%%rdx,4)\n"
+        "movups (%2,%%rdx,4),%%xmm0\n"
         "movups (%3),%%xmm2\n"
         "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,0(%2)\n"
-        "movups 0(%4),%%xmm0\n"
+        "movups %%xmm0,(%2,%%rdx,4)\n"
+        "movups (%4,%%rdx,4),%%xmm0\n"
         "movups (%5),%%xmm3\n"
         "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,0(%4)\n"
-
-        "movups 16(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,16(%0)\n"
-        "movups 16(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,16(%2)\n"
-        "movups 16(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,16(%4)\n"
-
-        "movups 32(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,32(%0)\n"
-        "movups 32(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,32(%2)\n"
-        "movups 32(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,32(%4)\n"
-
-        "movups 48(%0),%%xmm0\n"
-        "mulps %%xmm1,%%xmm0\n"
-        "movups %%xmm0,48(%0)\n"
-        "movups 48(%2),%%xmm0\n"
-        "mulps %%xmm2,%%xmm0\n"
-        "movups %%xmm0,48(%2)\n"
-        "movups 48(%4),%%xmm0\n"
-        "mulps %%xmm3,%%xmm0\n"
-        "movups %%xmm0,48(%4)\n"
+        "movups %%xmm0,(%4,%%rdx,4)\n"
+        "add $4,%%rdx\n"
+        "loop LV\n"
         :
         :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
+        :"%rcx","%rdx"
     );
     for (int j = 0; j < 16; ++j)
     {
