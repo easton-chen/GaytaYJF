@@ -176,13 +176,14 @@ int main()
 			
 			//YUV2RGB
 			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
-		
+			
 			for (int i = 0; i < 8; ++i)
 			{
 				R[pixel+i] = R[pixel+i]*alpha/256;
 				G[pixel+i] = G[pixel+i]*alpha/256;
 				B[pixel+i] = B[pixel+i]*alpha/256;
 			}	
+			
 			
 			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
 

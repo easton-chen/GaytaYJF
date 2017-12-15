@@ -11,7 +11,7 @@ using namespace std;
 FILE* fp_in=NULL,*fp_out=NULL;
 clock_t start, stop;
 clock_t s,e;
-double duration;
+int duration;
 unsigned char alpha;
 
 typedef int LONG;
@@ -604,7 +604,7 @@ int main()
     fclose(fp_out);
     stop = clock();
     //printf("start=%lu stop=%lu\n stop-start=%lf\n", start,stop,1.0*(stop-start));
-    duration = ((double)(stop - start))*1000/ CLOCKS_PER_SEC;
+    duration = (stop - start)*1000/ CLOCKS_PER_SEC;
     printf("total time= %f ms\n", duration);
     return 0;
 }
