@@ -39,6 +39,7 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "psubb %%xmm3,%%xmm1\n"
         "movups %%xmm1,(%0)\n"
         "movups %%xmm2,(%1)\n"
+        
         :
         :"r"(uu),"r"(vv),"r"(half)
     );
@@ -59,7 +60,8 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		"movups (%0),%%xmm0\n"
     		"movups (%1),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
-    		"movups %%xmm0,(%0)"
+    		"movups %%xmm0,(%0)\n"
+            
     		:
             :"r"(v_f),"r"(ratio_v)
     	);
@@ -75,6 +77,7 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         //"movq %0,%%rbx\n"        
         //"movups %%xmm0,(%%rbx)\n"
         "movups %%xmm0,(%0)\n"
+        
         :
         :"r"(rr),"r"(yy),"r"(v_tmp)
     );
@@ -98,6 +101,7 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		"movups (%3),%%xmm1\n"
     		"mulps %%xmm1,%%xmm0\n"
     		"movups %%xmm0,(%2)\n"
+            
     		:
             :"r"(v_f),"r"(ratio_v),"r"(u_f),"r"(ratio_u)
     	);
@@ -116,6 +120,7 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         //"movq %0,%%rbx\n"
         //"movups %%xmm0,(%%rbx)\n"
         "movups %%xmm0,(%0)\n"
+        
         :
         :"r"(gg),"r"(yy),"r"(v_tmp),"r"(u_tmp)
     );
@@ -134,6 +139,7 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     		"mulps %%xmm1,%%xmm0\n"
     		//"movups %%xmm0,%0"
             "movups %%xmm0,(%0)\n"
+            
     		:
             :"r"(u_f),"r"(ratio_u)
     	);
@@ -149,6 +155,7 @@ void YUV2RGB(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         //"movq %0,%%rbx\n"
         //"movups %%xmm0,(%%rbx)\n"
         "movups %%xmm0,(%0)\n"
+        
         :
         :"r"(bb),"r"(yy),"r"(u_tmp)
     );
@@ -170,16 +177,19 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
     float rr_f[16],gg_f[16],bb_f[16];
     float ratio_r[4],ratio_g[4],ratio_b[4];
     //alpha
+    
     float a[4],base[4];
     a[0]=a[1]=a[2]=a[3]=alpha;
     base[0]=base[1]=base[2]=base[3]=256;
+    
     for (int j = 0; j < 16; ++j)
     {
         rr_f[j] = rr[j];
         gg_f[j] = gg[j];
         bb_f[j] = bb[j];
     }
-
+    
+    
     __asm__(
         "movups (%3),%%xmm1\n"
         "movups (%4),%%xmm2\n"
@@ -214,7 +224,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         :"r"(rr_f),"r"(gg_f),"r"(bb_f),"r"(a),"r"(base)
         :"%rcx","%rdx"
     );
-
+    
     //Y   Y = 0.299 * R + 0.587 * G + 0.114 * B;
     ratio_r[0] = ratio_r[1] = ratio_r[2] = ratio_r[3] = 0.299;
     ratio_g[0] = ratio_g[1] = ratio_g[2] = ratio_g[3] = 0.587;
@@ -243,6 +253,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
 		"movups %%xmm0,(%4,%%rdx,4)\n"
         "add $4,%%rdx\n"
         "loop LY\n"
+        
         :
 		:"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
         :"%rcx","%rdx"
@@ -264,6 +275,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         //"movq %0,%%rbx\n"
         //"movups %%xmm0,(%%rbx)\n"
         "movups %%xmm0,(%0)\n"
+        
         //:"=m"(yy)
         :
         :"r"(yy),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) 
@@ -298,6 +310,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movups %%xmm0,(%4,%%rdx,4)\n"
         "add $4,%%rdx\n"
         "loop LU\n"
+        
         :
         :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
         :"%rcx","%rdx"
@@ -322,6 +335,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         //"movq %0,%%rbx\n"
         //"movups %%xmm0,(%%rbx)\n"
         "movups %%xmm0,(%0)\n"
+        
         //:"=m"(yy)
         :
         :"r"(uu),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) ,"r"(half) 
@@ -357,6 +371,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         "movups %%xmm0,(%4,%%rdx,4)\n"
         "add $4,%%rdx\n"
         "loop LV\n"
+        
         :
         :"r"(r_f),"r"(ratio_r),"r"(g_f),"r"(ratio_g),"r"(b_f),"r"(ratio_b)
         :"%rcx","%rdx"
@@ -381,6 +396,7 @@ void RGB2YUV(BYTE * yy,BYTE* uu,BYTE* vv,BYTE* rr,BYTE* gg,BYTE* bb)
         //"movq %0,%%rbx\n"
         //"movups %%xmm0,(%%rbx)\n"
         "movups %%xmm0,(%0)\n"
+        
         //:"=m"(yy)
         :
         :"r"(vv),"r"(r_tmp),"r"(g_tmp),"r"(b_tmp) ,"r"(half) 
@@ -444,8 +460,9 @@ int main()
 			}
 			
 			//YUV2RGB
-
+            
 			YUV2RGB(yy,uu,vv,R,G,B);
+            
             /*
 			for (int i = 0; i < 16; ++i)
 			{

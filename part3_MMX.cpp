@@ -243,15 +243,72 @@ int main()
             YUV2RGB(yy1,uu1,vv1,R1,G1,B1);
             YUV2RGB(yy2,uu2,vv2,R2,G2,B2);  
 
-            
+            /*
             for (int i = 0; i < 8; ++i)
             {
                 R[i] = ( R1[i] * alpha + R2[i] * (256-alpha) )/256;
                 G[i] = ( G1[i] * alpha + G2[i] * (256-alpha) )/256;
                 B[i] = ( B1[i] * alpha + B2[i] * (256-alpha) )/256;
             }
-			
-            RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R,G,B);
+            */
+            short R1_s[8],G1_s[8],B1_s[8],R2_s[8],G2_s[8],B2_s[8];
+            short a1[4],a2[4];
+            a1[0]=a1[1]=a1[2]=a1[3]=alpha;
+            a2[0]=a2[1]=a2[2]=a2[3]=256-alpha;
+            for (int i = 0; i < 8; ++i)
+            {
+                R1_s[i] = R1[i];
+                G1_s[i] = G1[i];
+                B1_s[i] = B1[i];
+                R2_s[i] = R2[i];
+                G2_s[i] = G2[i];
+                B2_s[i] = B2[i];
+            }
+            
+            __asm__(
+                "movq $2,%%rcx\n"
+                "movq $0,%%rdx\n"
+                "movq (%3),%%mm2\n"
+                "movq (%7),%%mm3\n"
+        
+                "La:movq (%0,%%rdx,2),%%mm0\n"
+                "pmullw %%mm2,%%mm0\n"
+                "movq (%4,%%rdx,2),%%mm1\n"
+                "pmullw %%mm3,%%mm1\n"
+                "paddw %%mm1,%%mm0\n"
+                "psrlw $8,%%mm0\n"
+                "movq %%mm0,(%0,%%rdx,2)\n"
+
+                "movq (%1,%%rdx,2),%%mm0\n"
+                "pmullw %%mm2,%%mm0\n"
+                "movq (%5,%%rdx,2),%%mm1\n"
+                "pmullw %%mm3,%%mm1\n"
+                "paddw %%mm1,%%mm0\n"
+                "psrlw $8,%%mm0\n"
+                "movq %%mm0,(%1,%%rdx,2)\n"
+
+                "movq (%2,%%rdx,2),%%mm0\n"
+                "pmullw %%mm2,%%mm0\n"
+                "movq (%6,%%rdx,2),%%mm1\n"
+                "pmullw %%mm3,%%mm1\n"
+                "paddw %%mm1,%%mm0\n"
+                "psrlw $8,%%mm0\n"
+                "movq %%mm0,(%2,%%rdx,2)\n"
+                "add $4,%%rdx\n"
+                "loop La\n"
+                "emms"
+                :
+                :"r"(R1_s),"r"(G1_s),"r"(B1_s),"r"(a1),"r"(R2_s),"r"(G2_s),"r"(B2_s),"r"(a2)
+                :"%rcx","%rdx"
+            );
+    
+            for (int i = 0; i < 8; ++i)
+            {
+                R1[i] = R1_s[i];
+                G1[i] = G1_s[i];
+                B1[i] = B1_s[i];
+            }			
+            RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R1,G1,B1);
 			
 			for (int i = 0; i < 8; i+=2)
 			{

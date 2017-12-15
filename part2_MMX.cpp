@@ -190,7 +190,7 @@ int main()
 
 	unsigned char alpha=255;
 	int num=0;
-	unsigned char Y,U,V,R,G,B;
+	//unsigned char Y,U,V,R,G,B;
 	string str;
 
     start = clock();
@@ -206,7 +206,7 @@ int main()
 		}
 		
 		BYTE yy[8],uu[8],vv[8];
-		BYTE R[Height*Width],G[Height*Width],B[Height*Width];
+		BYTE R[8],G[8],B[8];
 
 		for(int pixel=0;pixel<Height*Width; pixel += 8)
 		{
@@ -222,20 +222,65 @@ int main()
 			}
 			
 			//YUV2RGB
-
-			YUV2RGB(yy,uu,vv,R+pixel,G+pixel,B+pixel);
-
             
+			YUV2RGB(yy,uu,vv,R,G,B);
+
+            //alpha
+            short R_s[8],G_s[8],B_s[8];
+            short a[4];
+            a[0]=a[1]=a[2]=a[3]=alpha;
+            for (int i = 0; i < 8; ++i)
+            {
+                R_s[i] = R[i];
+                G_s[i] = G[i];
+                B_s[i] = B[i];
+            }
+            
+            __asm__(
+                "movq $2,%%rcx\n"
+                "movq $0,%%rdx\n"
+                "movq (%3),%%mm1\n"
+        
+                "La:movq (%0,%%rdx,2),%%mm0\n"
+                "pmullw %%mm1,%%mm0\n"
+                "psrlw $8,%%mm0\n"
+                "movq %%mm0,(%0,%%rdx,2)\n"
+
+                "movq (%1,%%rdx,2),%%mm0\n"
+                "pmullw %%mm1,%%mm0\n"
+                "psrlw $8,%%mm0\n"
+                "movq %%mm0,(%1,%%rdx,2)\n"
+
+                "movq (%2,%%rdx,2),%%mm0\n"
+                "pmullw %%mm1,%%mm0\n"
+                "psrlw $8,%%mm0\n"
+                "movq %%mm0,(%2,%%rdx,2)\n"
+                "add $4,%%rdx\n"
+                "loop La\n"
+                "emms"
+                :
+                :"r"(R_s),"r"(G_s),"r"(B_s),"r"(a)
+                :"%rcx","%rdx"
+            );
+    
+            for (int i = 0; i < 8; ++i)
+            {
+                R[i] = R_s[i];
+                G[i] = G_s[i];
+                B[i] = B_s[i];
+            }
+            
+            /*
 			for (int i = 0; i < 8; ++i)
 			{
-				R[pixel+i] = R[pixel+i]*alpha/256;
-				G[pixel+i] = G[pixel+i]*alpha/256;
-				B[pixel+i] = B[pixel+i]*alpha/256;
+				R[i] = R[i]*alpha/256;
+				G[i] = G[i]*alpha/256;
+				B[i] = B[i]*alpha/256;
 			}	
-			
+			*/
 			BYTE buffer_tu[8],buffer_tv[8];
-			RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R+pixel,G+pixel,B+pixel);
-			
+            RGB2YUV(buffer_wy+pixel,buffer_tu,buffer_tv,R,G,B);
+            
 			for (int i = 0; i < 8; i+=2)
 			{
 				buffer_wu[idx-i/2] = buffer_tu[8-i-1];	
